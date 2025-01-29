@@ -1,42 +1,47 @@
-﻿
+﻿using MauiTodo.Models;
+using System.Collections.ObjectModel;
 
-using MauiTodo.Models;
+namespace MauiTodo;
 
-namespace MauiTodo
+public partial class MainPage : ContentPage
 {
-	public partial class MainPage : ContentPage
+	public ObservableCollection<TodoItem> Todos { get; set; } = new();
+
+	readonly Database _database;
+
+	public MainPage()
 	{
-		string _todoListData = string.Empty; // Values of the to-do items
-		readonly Database _database; // Stores an instance of the database class
+		InitializeComponent();
+		_database = new Database();
+		_ = Initialize();
+	}
 
-		public MainPage(Database database)
+	private async Task Initialize()
+	{
+		var todos = await _database.GetTodos();
+
+		foreach (var todo in todos)
 		{
-			InitializeComponent();
-			_database = new Database(); //create an instance of the database class & assign it to the _database field.
-			_ = Initialize(); //Uses the discard variable to call our Initialize method
+			Todos.Add(todo);
 		}
+	}
 
-		private async Task Initialize()
+	private async void Button_Clicked(object sender, EventArgs e)
+	{
+		var todo = new TodoItem
 		{
-			// Initialization logic here
-			await Task.CompletedTask;
-		}
+			Due = DueDatepicker.Date,
+			Title = TodoTitleEntry.Text
+		};
 
-		private async void Button_Clicked(object sender, EventArgs e)
+		var inserted = await _database.Addtodo(todo);
+
+		if (inserted != 0)
 		{
-			// Button click logic here
+			Todos.Add(todo);
 
-			// Create a new TodoItem object
-			var todoItem = new TodoItem
-			{
-				Title = _todoListData,
-				Done = false,
-				Due = DateTime.Now,
-			};
-
-			todoItem.Id = await _database.Addtodo(todoItem); // Add the new TodoItem to the database
-			_todoListData = string.Empty; // Clear the _todoListData field
-			await Initialize(); // Reinitialize the page
+			TodoTitleEntry.Text = String.Empty;
+			DueDatepicker.Date = DateTime.Now;
 		}
 	}
 

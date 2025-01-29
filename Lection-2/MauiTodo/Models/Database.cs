@@ -28,10 +28,10 @@ namespace MauiTodo.Models
             var dbOptions = new SQLiteConnectionString(databasePath, true, key: _dbEncryptionKey);
 
             _connection = new SQLiteAsyncConnection(dbOptions);
-            _ = Initialize();
+            _ = Intialise();
         }
 
-        private async Task Initialize()
+        private async Task Intialise()
         {
             await _connection.CreateTableAsync<TodoItem>();
         }
