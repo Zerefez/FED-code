@@ -18,7 +18,7 @@
                 BackgroundColor="#10e3a7" />
 
             <Label
-                Text="Hello, World!"
+                Text="Hello, World! Din TIZZI"
                 Style="{StaticResource Headline}"
                 SemanticProperties.HeadingLevel="Level1" 
                 BackgroundColor="#10e3a7"/>
