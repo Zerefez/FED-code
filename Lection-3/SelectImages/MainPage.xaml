@@ -1,0 +1,135 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="SelectImages.MainPage"
+             xmlns:local="clr-namespace:SelectImages">
+
+    <ScrollView>
+        <VerticalStackLayout
+            Padding="30,0"
+            Spacing="25">
+
+            <Label
+                Text="Select Images &#10;Zerefez"
+                Style="{StaticResource Headline}"
+                SemanticProperties.HeadingLevel="Level2"
+                SemanticProperties.Description="Welcome to dot net Multi platform App U I" />
+
+            <Image
+                Source="fliege_fliegt_gif.gif"
+                HeightRequest="50"
+                HorizontalOptions="Center"
+                SemanticProperties.Description="A fly"
+                IsAnimationPlaying="True"/>
+
+            <Label
+                Text="About this app"
+                Style="{StaticResource SubHeadline}"
+                SemanticProperties.HeadingLevel="Level1" />
+
+            <Label
+                Text="An app where the user can upload images from their device (computer) to a database along with a descriptive text"
+                HorizontalTextAlignment="Center"
+                SemanticProperties.HeadingLevel="Level2"
+                SemanticProperties.Description="About"
+                FontSize="14"/>
+
+            <HorizontalStackLayout HorizontalOptions="Center" Spacing="25">
+                <!-- Left Section (Buttons & Inputs) -->
+                <VerticalStackLayout>
+                    <Button
+                        WidthRequest="150"
+                        HeightRequest="50"
+                        x:Name="SelectImageBtn"
+                        Text="Select Image"
+                        SemanticProperties.Hint="Select an image from your device"
+                        Clicked="OnSelectImageClicked"
+                        HorizontalOptions="Center"
+                        Margin="5" >
+                    <Button.Shadow>
+                            <Shadow Brush="Black"
+                                    Offset="5,5"
+                                    Radius="10"
+                                    Opacity="0.8" />
+                        </Button.Shadow>
+                    </Button>
+
+                    <Entry
+                        WidthRequest="300"
+                        Placeholder="Enter a title"
+                        x:Name="TitleEntry"
+                        HorizontalOptions="Center"
+                        Margin="5"/>
+
+                    <Editor
+                        WidthRequest="300"
+                        Placeholder="Enter a description"
+                        x:Name="DescriptionEditor"
+                        HorizontalOptions="Center"
+                        Margin="5" />
+
+                    <Button
+                        WidthRequest="150"
+                        HeightRequest="50"
+                        x:Name="UploadBtn"
+                        Text="Add"
+                        SemanticProperties.Hint="Upload the image to the database"
+                        Clicked="OnUploadClicked"
+                        HorizontalOptions="Center"
+                        Margin="5">
+
+                        <Button.Shadow>
+                            <Shadow Brush="Black"
+                                    Offset="5,5"
+                                    Radius="10"
+                                    Opacity="0.8" />
+                        </Button.Shadow>
+                    </Button>
+                </VerticalStackLayout>
+
+                <!-- Right Section (Selected Image Label + Border) -->
+                <VerticalStackLayout HorizontalOptions="Center">
+                    <Label
+                        Text="Selected Image"
+                        Style="{StaticResource SubHeadline}"
+                        HorizontalOptions="Center"
+                        Margin="5"
+                        SemanticProperties.HeadingLevel="Level1" />
+
+                    <Border StrokeThickness="1" Padding="5">
+                        <Image
+                            x:Name="selectedImage"
+                            WidthRequest="200"/>
+                    </Border>
+                </VerticalStackLayout>
+            </HorizontalStackLayout>
+            <!-- CarouselView replacing CollectionView -->
+            <CarouselView ItemsSource="{Binding Images}"
+                          Margin="10"
+                          x:Name="ImageCarouselView">
+                <CarouselView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Horizontal"
+                                       ItemSpacing="5" />
+                </CarouselView.ItemsLayout>
+                <CarouselView.ItemTemplate>
+                    <DataTemplate>
+                        <VerticalStackLayout Spacing="20">
+                            <Image Source="{Binding Path}"
+                                   WidthRequest="400"
+                                   HeightRequest="300"
+                                   Aspect="AspectFit"
+                                   HorizontalOptions="Center" />
+                            <Label Text="{Binding Title}"
+                                    HorizontalOptions="Center"
+                                   FontAttributes="Bold" />
+                            <Label Text="{Binding Description}"
+                                    HorizontalOptions="Center"
+                                    LineBreakMode="WordWrap" />
+                        </VerticalStackLayout>
+                    </DataTemplate>
+                </CarouselView.ItemTemplate>
+            </CarouselView>
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>
