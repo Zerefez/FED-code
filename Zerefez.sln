@@ -15,7 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lection-3", "Lection-3", "{
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SelectImages", "Lection-3\SelectImages\SelectImages.csproj", "{66CAB70F-56DF-4B73-8F6F-1671C4ED5226}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BilvaekstedApp", "BilvaekstedApp\BilvaekstedApp.csproj", "{9E17624A-B836-4094-AC69-A0BEBD01F62C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BilvaerkstedApp", "BilvaerkstedApp\BilvaerkstedApp.csproj", "{9E17624A-B836-4094-AC69-A0BEBD01F62C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
