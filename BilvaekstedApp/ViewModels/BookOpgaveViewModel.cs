@@ -5,10 +5,11 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 
-namespace BilvaekstedApp.ViewModels;
+namespace BilvaerkstedApp.ViewModels;
 
 public partial class BookOpgaveViewModel : ObservableObject
 {
+    public  BookOpgaveViewModel() { }
     private readonly DatabaseService _databaseService;
 
     [ObservableProperty]

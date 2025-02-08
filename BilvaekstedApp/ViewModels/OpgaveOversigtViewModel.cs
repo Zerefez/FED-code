@@ -8,6 +8,8 @@ namespace BilvaerkstedApp.ViewModels
 {
     public partial class OpgaveOversigtViewModel : ObservableObject
     {
+
+        public OpgaveOversigtViewModel() {  }
         private readonly DatabaseService _databaseService;
 
         [ObservableProperty]

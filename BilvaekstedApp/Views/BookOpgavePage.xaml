@@ -1,0 +1,30 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:BilvaerkstedApp.ViewModels"
+             x:Class="BilvaerkstedApp.Views.BookOpgavePage"
+             BackgroundColor="#171A21">
+    <ContentPage.BindingContext>
+        <vm:BookOpgaveViewModel />
+    </ContentPage.BindingContext>
+
+    <VerticalStackLayout Padding="20">
+        <Label Text="Book en opgave" FontSize="32" FontAttributes="Bold"
+               TextColor="White" HorizontalOptions="Center" />
+
+        <Frame BackgroundColor="#25282F" CornerRadius="20" Padding="20" HasShadow="True">
+            <VerticalStackLayout Spacing="15">
+                <Entry Placeholder="Kundens Navn" Text="{Binding KundeNavn}" TextColor="White"/>
+                <Entry Placeholder="Adresse" Text="{Binding Adresse}" TextColor="White"/>
+                <Entry Placeholder="Bil Mærke" Text="{Binding BilMaerke}" TextColor="White"/>
+                <Entry Placeholder="Model" Text="{Binding Model}" TextColor="White"/>
+                <Entry Placeholder="Indregistreringsnummer" Text="{Binding Indregistreringsnummer}" TextColor="White"/>
+                <DatePicker Date="{Binding DatoTid}" TextColor="White"/>
+                <Editor Placeholder="Hvad skal laves?" Text="{Binding Arbejde}" TextColor="White"/>
+            </VerticalStackLayout>
+        </Frame>
+
+        <Button Text="Gem Opgave" Command="{Binding GemOpgaveCommand}"
+                BackgroundColor="#00ADEF" TextColor="White" CornerRadius="30"
+                FontSize="18" HeightRequest="50"/>
+    </VerticalStackLayout>
+</ContentPage>

@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Shell
-    x:Class="BilvaekstedApp.AppShell"
+    x:Class="BilvaerkstedApp.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:BilvaekstedApp"
-    Shell.FlyoutBehavior="Flyout"
+    xmlns:local="clr-namespace:BilvaerkstedApp"
+    xmlns:views="clr-namespace:BilvaerkstedApp.Views"
     Title="BilvaekstedApp">
 
     <ShellContent
         Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+        ContentTemplate="{DataTemplate views:BookOpgavePage}"
+        Route="bookopgave" />
 
 </Shell>
+

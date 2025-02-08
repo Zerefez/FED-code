@@ -1,4 +1,4 @@
-﻿namespace BilvaekstedApp;
+﻿namespace BilvaerkstedApp;
 
 public partial class App : Application
 {

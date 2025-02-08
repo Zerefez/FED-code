@@ -1,0 +1,38 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:BilvaerkstedApp.ViewModels"
+             x:Class="BilvaerkstedApp.Views.OpgaveOversigtPage"
+             BackgroundColor="#171A21">
+    <ContentPage.BindingContext>
+        <vm:OpgaveOversigtViewModel />
+    </ContentPage.BindingContext>
+
+    <VerticalStackLayout Padding="20">
+        <Label Text="Opgaveoversigt" FontSize="32" FontAttributes="Bold"
+               TextColor="White" HorizontalOptions="Center"/>
+
+        <DatePicker Date="{Binding SelectedDate}"
+                    TextColor="White"
+                    BackgroundColor="#25282F"
+                    Margin="0,10,0,10"/>
+
+        <Button Text="Hent Opgaver" Command="{Binding LoadOpgaverCommand}"
+                BackgroundColor="#00ADEF" TextColor="White" CornerRadius="30"
+                FontSize="18" HeightRequest="50"/>
+
+        <CollectionView ItemsSource="{Binding Opgaver}" Margin="0,10,0,0">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Frame BackgroundColor="#25282F" Padding="10" CornerRadius="20">
+                        <VerticalStackLayout>
+                            <Label Text="{Binding KundeNavn}" TextColor="White" FontSize="18" FontAttributes="Bold"/>
+                            <Label Text="{Binding Arbejde}" TextColor="Gray" FontSize="14"/>
+                            <Label Text="{Binding DatoTid, StringFormat='Indlevering: {0:dd/MM/yyyy HH:mm}'}"
+                                   TextColor="LightGray" FontSize="12"/>
+                        </VerticalStackLayout>
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </VerticalStackLayout>
+</ContentPage>

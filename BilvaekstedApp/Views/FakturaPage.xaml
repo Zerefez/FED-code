@@ -1,0 +1,46 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:BilvaerkstedApp.ViewModels"
+             x:Class="BilvaerkstedApp.Views.FakturaPage"
+             BackgroundColor="#171A21">
+    <ContentPage.BindingContext>
+        <vm:FakturaViewModel />
+    </ContentPage.BindingContext>
+
+    <VerticalStackLayout Padding="20">
+        <Label Text="Faktura" FontSize="32" FontAttributes="Bold"
+               TextColor="White" HorizontalOptions="Center"/>
+
+        <Entry Placeholder="Mekanikerens navn" Text="{Binding MekanikerNavn}" TextColor="White"/>
+        <Entry Placeholder="Timepris" Text="{Binding TimePris}" Keyboard="Numeric" TextColor="White"/>
+        <Entry Placeholder="Antal timer" Text="{Binding Timer}" Keyboard="Numeric" TextColor="White"/>
+        
+        <Label Text="Materialer" FontSize="18" TextColor="White" Margin="0,10,0,0"/>
+        <CollectionView ItemsSource="{Binding Materialer}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Frame BackgroundColor="#25282F" Padding="10" CornerRadius="20">
+                        <VerticalStackLayout>
+                            <Label Text="{Binding Materiale}" TextColor="White" FontSize="16"/>
+                            <Label Text="{Binding Pris, StringFormat='Pris: {0:C}'}" TextColor="LightGray"/>
+                        </VerticalStackLayout>
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <Entry Placeholder="Materiale Navn" x:Name="MaterialeNavnEntry" TextColor="White"/>
+        <Entry Placeholder="Pris" x:Name="MaterialePrisEntry" Keyboard="Numeric" TextColor="White"/>
+
+        <Button Text="Tilføj Materiale"
+                Command="{Binding TilføjMaterialeCommand}"
+                CommandParameter="{Binding Source={x:Reference MaterialeNavnEntry}, Path=Text, Converter={StaticResource CombineParametersConverter}, ConverterParameter={Binding Source={x:Reference MaterialePrisEntry}, Path=Text}}"
+                BackgroundColor="#00ADEF" TextColor="White" CornerRadius="30"/>
+
+        <Label Text="{Binding TotalPris, StringFormat='Total Pris: {0:C}'}"
+               FontSize="22" TextColor="White" Margin="10,20,0,0"/>
+        
+        <Button Text="Beregn Total" Command="{Binding BeregnTotalPrisCommand}"
+                BackgroundColor="#00ADEF" TextColor="White" CornerRadius="30"/>
+    </VerticalStackLayout>
+</ContentPage>
