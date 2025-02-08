@@ -15,9 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lection-3", "Lection-3", "{
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SelectImages", "Lection-3\SelectImages\SelectImages.csproj", "{66CAB70F-56DF-4B73-8F6F-1671C4ED5226}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Bilværksted", "Bilværksted", "{26C75A6E-28A0-4FDE-ACD5-620C700FF367}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BilværkstedApp", "Bilværksted\BilværkstedApp\BilværkstedApp.csproj", "{C49D46CC-72CE-4600-95DF-34E1374B046E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BilvaekstedApp", "BilvaekstedApp\BilvaekstedApp.csproj", "{9E17624A-B836-4094-AC69-A0BEBD01F62C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -48,6 +46,10 @@ Global
 		{C49D46CC-72CE-4600-95DF-34E1374B046E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C49D46CC-72CE-4600-95DF-34E1374B046E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C49D46CC-72CE-4600-95DF-34E1374B046E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E17624A-B836-4094-AC69-A0BEBD01F62C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E17624A-B836-4094-AC69-A0BEBD01F62C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E17624A-B836-4094-AC69-A0BEBD01F62C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E17624A-B836-4094-AC69-A0BEBD01F62C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{BF12BC8E-843B-427B-B935-2D23372530B5} = {7D7271A7-00BD-4811-9661-67BF15C75AE0}
