@@ -4,11 +4,15 @@ import { cn } from '../../utils/cn';
 import Button from '../common/Button';
 
 export default function ModelJobsList({ model, formatDate }) {
+  // Make sure model.jobs is always an array
+  const jobs = Array.isArray(model.jobs) ? model.jobs : [];
+  const hasJobs = jobs.length > 0;
+  
   return (
     <div>
       <h2 className="text-xl font-semibold mb-3 text-foreground">Jobs</h2>
       
-      {!model.jobs || model.jobs.length === 0 ? (
+      {!hasJobs ? (
         <p className="bg-secondary/20 p-4 rounded-md text-muted-foreground">No jobs assigned to this model.</p>
       ) : (
         <div className="overflow-x-auto">
@@ -33,7 +37,7 @@ export default function ModelJobsList({ model, formatDate }) {
               </tr>
             </thead>
             <tbody>
-              {model.jobs.map((job, idx) => (
+              {jobs.map((job, idx) => (
                 <tr key={job.jobId || job.id} className={cn("border-b border-border", idx % 2 === 0 ? "bg-card" : "bg-secondary/10")}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                     {job.customer}

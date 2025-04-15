@@ -38,14 +38,15 @@ export default function useModelJobs(modelId) {
         console.log(`useModelJobs hook: Fetching jobs for model ID: ${modelId}`);
         
         let data;
-        if (isModel && !isManager) {
-          // If this is a model looking at their own jobs, use their actual model ID
-          console.log(`useModelJobs hook: Model viewing their own jobs with ID: ${currentModelId}`);
-          data = await modelsAPI.getModelJobs(currentModelId);
-        } else {
-          // Managers can view any model's jobs
-          console.log(`useModelJobs hook: Manager viewing jobs for model ID: ${modelId}`);
-          data = await modelsAPI.getModel(modelId);
+        try {
+          // First try to get specific model jobs
+          console.log(`useModelJobs hook: Fetching model jobs with /Models/${modelId}/jobs`);
+          data = await modelsAPI.getModelJobs(modelId);
+        } catch {
+          // If that fails, try getting the model data which might include jobs
+          console.log(`useModelJobs hook: Failed to get jobs directly, getting model data instead`);
+          const modelData = await modelsAPI.getModel(modelId);
+          data = modelData;
         }
         
         // Ensure jobs array exists
