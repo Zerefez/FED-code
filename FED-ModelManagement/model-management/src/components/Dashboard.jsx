@@ -1,14 +1,65 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { managersAPI } from '../services/api';
 import { cn } from '../utils/cn';
 import { Card, CardContent, CardHeader, CardTitle } from './common/Card';
 
 export default function Dashboard() {
   const { currentUser, isManager, isModel, getModelId } = useAuth();
+  const [fullName, setFullName] = useState("");
+  const [loading, setLoading] = useState(false);
 
   // Get correct model identifier for navigation
   const modelIdentifier = getModelId();
-  console.log('Dashboard: Model identifier for navigation:', modelIdentifier);
+  
+  // Debug the model state right away
+  console.log('Dashboard: Initial state', { 
+    modelIdentifier, 
+    isModel, 
+    isManager, 
+    currentUser
+  });
+  
+  // Fetch user name for managers only
+  useEffect(() => {
+    const fetchManagerData = async () => {
+      if (!currentUser || !isManager) return;
+      
+      setLoading(true);
+      try {
+        // Fetch manager data using the managers API
+        const managers = await managersAPI.getAllManagers();
+        // Find the manager that matches the current user's email
+        const userData = managers?.find(m => m.email === currentUser.email);
+        console.log('Manager data found:', userData);
+        
+        if (userData) {
+          const firstName = userData.firstName || '';
+          const lastName = userData.lastName || '';
+          const name = `${firstName} ${lastName}`.trim();
+          
+          console.log('Name components for manager:', { firstName, lastName, fullName: name });
+          
+          if (name) {
+            setFullName(name);
+            console.log('Dashboard: Manager name set to:', name);
+          }
+        }
+      } catch (error) {
+        console.error('Dashboard: Error fetching manager data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchManagerData();
+  }, [currentUser, isManager]);
+  
+  // Debug information
+  console.log('Dashboard: Current User Data:', currentUser);
+  console.log('Dashboard: Model ID:', modelIdentifier);
+  console.log('Dashboard: Full Name:', fullName);
 
   return (
     <Card>
@@ -23,6 +74,11 @@ export default function Dashboard() {
         <p className="text-muted-foreground">
           Role: <span className="font-semibold text-foreground">{isManager ? 'Manager' : 'Model'}</span>
         </p>
+        {isManager && (
+          <p className="text-muted-foreground">
+            Name: <span className="font-semibold text-foreground">{loading ? 'Loading...' : (fullName || '[Name not available]')}</span>
+          </p>
+        )}
         
         {isManager ? (
           <div className="mt-6">
