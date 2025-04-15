@@ -1,12 +1,13 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import Login from './components/auth/Login'
 import Dashboard from './components/Dashboard'
-import JobDetail from './components/JobDetail'
 import Jobs from './components/Jobs'
 import Layout from './components/Layout'
 import CreateJob from './components/manager/CreateJob'
 import CreateManager from './components/manager/CreateManager'
 import CreateModel from './components/manager/CreateModel'
+import EditManager from './components/manager/EditManager'
+import EditModel from './components/manager/EditModel'
 import Managers from './components/Managers'
 import ModelExpenses from './components/ModelExpenses'
 import ModelJobs from './components/ModelJobs'
@@ -30,7 +31,8 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/jobs" element={<Jobs />} />
-          <Route path="/jobs/:id" element={<JobDetail />} />
+          <Route path="/jobs/:id" element={<Jobs />} />
+          <Route path="/jobs/:id/edit" element={<Navigate to="/jobs/:id" replace />} />
           <Route path="/models/:id/jobs" element={<ModelJobs />} />
           <Route path="/models/:id/expenses" element={<ModelExpenses />} />
         </Route>
@@ -39,9 +41,13 @@ function App() {
         <Route element={<ProtectedRoute requireManager={true} />}>
           {/* Models routes */}
           <Route path="/models" element={<Models />} />
+          <Route path="/models/:id" element={<Models />} />
+          <Route path="/models/:id/edit" element={<EditModel />} />
           
           {/* Managers routes */}
           <Route path="/managers" element={<Managers />} />
+          <Route path="/managers/:id" element={<Managers />} />
+          <Route path="/managers/:id/edit" element={<EditManager />} />
           
           {/* Creation routes */}
           <Route path="/create-job" element={<CreateJob />} />
