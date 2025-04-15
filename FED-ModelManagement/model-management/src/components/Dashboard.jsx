@@ -4,7 +4,11 @@ import { cn } from '../utils/cn';
 import { Card, CardContent, CardHeader, CardTitle } from './common/Card';
 
 export default function Dashboard() {
-  const { currentUser, isManager } = useAuth();
+  const { currentUser, isManager, isModel, getModelId } = useAuth();
+
+  // Get correct model identifier for navigation
+  const modelIdentifier = getModelId();
+  console.log('Dashboard: Model identifier for navigation:', modelIdentifier);
 
   return (
     <Card>
@@ -61,32 +65,29 @@ export default function Dashboard() {
               />
             </div>
           </div>
-        ) : (
+        ) : isModel ? (
           <div className="mt-6">
             <h2 className="text-xl font-semibold mb-4">Model Actions:</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {currentUser?.modelId && (
-                <>
-                  <DashboardCard 
-                    to={`/models/${currentUser.modelId}/jobs`}
-                    title="My Jobs"
-                    description="View all jobs you are assigned to"
-                  />
-                  
-                  <DashboardCard 
-                    to={`/models/${currentUser.modelId}/expenses`}
-                    title="My Expenses"
-                    description="View and manage your job expenses"
-                  />
-                </>
-              )}
-              
+              {/* For models - use the ID from getModelId function */}
               <DashboardCard 
                 to="/jobs"
-                title="View Jobs"
-                description="View all jobs you are assigned to and add expenses"
+                title="My Jobs"
+                description="View all jobs you are assigned to"
+              />
+              
+              <DashboardCard 
+                to={`/models/${modelIdentifier}/expenses`}
+                title="My Expenses"
+                description="View and manage your job expenses"
               />
             </div>
+          </div>
+        ) : (
+          <div className="mt-6">
+            <p className="text-muted-foreground">
+              Your account doesn't have specific permissions assigned. Please contact an administrator.
+            </p>
           </div>
         )}
       </CardContent>

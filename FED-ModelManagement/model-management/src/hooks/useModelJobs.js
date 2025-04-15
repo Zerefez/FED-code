@@ -6,47 +6,46 @@ export default function useModelJobs(modelId) {
   const [model, setModel] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const { isManager, currentUser } = useAuth();
+  const { isManager, currentUser, isModel, getModelId } = useAuth();
 
-  // Load model jobs on hook initialization
   useEffect(() => {
     async function fetchModelJobs() {
       try {
         setLoading(true);
-        setError('');
-        console.log(`useModelJobs hook: Fetching jobs for model with ID: ${modelId}`);
         
-        if (!modelId || modelId === 'undefined') {
-          setError('Invalid model ID');
-          console.error('useModelJobs hook: No valid ID provided:', modelId);
+        // Get the correct model ID
+        const currentModelId = getModelId();
+        console.log('useModelJobs hook: Current model ID:', currentModelId);
+        
+        // Permission check - only allow if user is a manager or this is their own model ID
+        const hasPermission = isManager || 
+          (isModel && currentModelId && 
+            (String(currentModelId) === String(modelId) || 
+             currentUser?.email?.toLowerCase() === modelId?.toLowerCase()));
+        
+        if (!hasPermission) {
+          console.log('useModelJobs hook: Permission denied', { 
+            isManager, 
+            isModel,
+            currentModelId,
+            requestedModelId: modelId 
+          });
+          setError('You do not have permission to view this model\'s jobs');
           setLoading(false);
           return;
         }
         
-        // Parse the ID to a number before passing to API
-        const parsedModelId = parseInt(modelId, 10);
-        console.log(`useModelJobs hook: Parsed model ID: ${parsedModelId}`);
+        console.log(`useModelJobs hook: Fetching jobs for model ID: ${modelId}`);
         
-        if (isNaN(parsedModelId)) {
-          setError('Invalid model ID format');
-          console.error('useModelJobs hook: ID is not a valid number:', modelId);
-          setLoading(false);
-          return;
-        }
-        
-        const data = await modelsAPI.getModelJobs(parsedModelId);
-        
-        // Check if we got valid data back
-        if (!data) {
-          setError('No data returned from server');
-          console.error('useModelJobs hook: No data returned from API');
-          setLoading(false);
-          return;
-        }
-        
-        // Validate the model data structure based on API schema
-        if (!data.firstName || !data.lastName) {
-          console.warn('useModelJobs hook: Model data is missing required properties:', data);
+        let data;
+        if (isModel && !isManager) {
+          // If this is a model looking at their own jobs, use their actual model ID
+          console.log(`useModelJobs hook: Model viewing their own jobs with ID: ${currentModelId}`);
+          data = await modelsAPI.getModelJobs(currentModelId);
+        } else {
+          // Managers can view any model's jobs
+          console.log(`useModelJobs hook: Manager viewing jobs for model ID: ${modelId}`);
+          data = await modelsAPI.getModel(modelId);
         }
         
         // Ensure jobs array exists
@@ -66,7 +65,7 @@ export default function useModelJobs(modelId) {
         
         if (errorMessage.includes('404')) {
           setError('Model not found');
-        } else if (errorMessage.includes('401')) {
+        } else if (errorMessage.includes('401') || errorMessage.includes('403')) {
           setError('Unauthorized: You don\'t have permission to view these jobs');
         } else if (errorMessage.includes('400')) {
           setError('Invalid model ID format');
@@ -79,13 +78,13 @@ export default function useModelJobs(modelId) {
     }
     
     fetchModelJobs();
-  }, [modelId]);
+  }, [modelId, isManager, currentUser, isModel, getModelId]);
 
   // Check if the user is allowed to view this model's jobs
   const canViewModelJobs = isManager || (
-    currentUser?.modelId && (
-      currentUser.modelId === parseInt(modelId) || 
-      currentUser.modelId.toString() === modelId
+    isModel && (
+      String(getModelId()) === String(modelId) || 
+      currentUser?.email?.toLowerCase() === modelId?.toLowerCase()
     )
   );
 

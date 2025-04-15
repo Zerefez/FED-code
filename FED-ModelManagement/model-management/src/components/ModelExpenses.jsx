@@ -9,7 +9,7 @@ import ErrorMessage from './common/ErrorMessage';
 
 export default function ModelExpenses() {
   const { id } = useParams();
-  const { isManager, currentUser } = useAuth();
+  const { isManager, currentUser, isModel, getModelId } = useAuth();
   const [model, setModel] = useState(null);
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,12 +19,49 @@ export default function ModelExpenses() {
     async function fetchData() {
       try {
         setLoading(true);
+        setError('');
+        
+        // Get the correct model ID
+        const currentModelId = getModelId();
+        console.log('ModelExpenses: Current model ID:', currentModelId);
+        
+        // Permission check - only allow if user is a manager or this is their own model ID
+        const hasPermission = isManager || 
+          (isModel && currentModelId && 
+            (String(currentModelId) === String(id) || 
+             currentUser?.email?.toLowerCase() === id?.toLowerCase()));
+        
+        if (!hasPermission) {
+          console.log('ModelExpenses: Permission denied', { 
+            isManager, 
+            isModel,
+            currentModelId,
+            requestedModelId: id 
+          });
+          setError('You do not have permission to view these expenses');
+          setLoading(false);
+          return;
+        }
+        
         // Get model info first
-        const modelData = await modelsAPI.getModel(id);
+        let modelData;
+        let modelId = id;
+        
+        if (isModel && !isManager) {
+          // If this is a model user, ensure they can only view their own expenses
+          modelId = currentModelId;
+          console.log(`ModelExpenses: Model viewing own expenses with ID: ${modelId}`);
+          modelData = await modelsAPI.getModel(modelId);
+        } else {
+          // Managers can view any model's expenses
+          console.log(`ModelExpenses: Manager viewing expenses for model ID: ${id}`);
+          modelData = await modelsAPI.getModel(id);
+        }
+        
         setModel(modelData);
         
         // Then get expenses
-        const expensesData = await expensesAPI.getModelExpenses(id);
+        const expensesData = await expensesAPI.getModelExpenses(modelId);
         setExpenses(expensesData);
       } catch (err) {
         setError('Failed to fetch data');
@@ -35,10 +72,15 @@ export default function ModelExpenses() {
     }
     
     fetchData();
-  }, [id]);
+  }, [id, isManager, currentUser, isModel, getModelId]);
 
   // Check if the user is allowed to view expenses
-  const canViewExpenses = isManager || (currentUser?.modelId === parseInt(id));
+  const canViewExpenses = isManager || (
+    isModel && (
+      String(getModelId()) === String(id) || 
+      currentUser?.email?.toLowerCase() === id?.toLowerCase()
+    )
+  );
 
   const deleteExpense = async (expenseId) => {
     if (!window.confirm('Are you sure you want to delete this expense?')) return;
@@ -73,7 +115,7 @@ export default function ModelExpenses() {
         <CardTitle>Expenses for {model.firstName} {model.lastName}</CardTitle>
         <div className="flex space-x-2">
           <Button variant="outline" asChild>
-            <Link to={`/models/${id}/jobs`}>
+            <Link to={`/models/${isModel && !isManager ? getModelId() : id}/jobs`}>
               View Jobs
             </Link>
           </Button>

@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { modelsAPI } from '../services/api';
 import * as authService from '../services/auth';
 import { formatErrorMessage } from '../utils/errorHandling';
 
@@ -13,6 +14,9 @@ export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
+  const [modelData, setModelData] = useState(null);
+  const [modelLoading, setModelLoading] = useState(false);
+  const [modelError, setModelError] = useState(null);
   const navigate = useNavigate();
 
   console.log('AuthContext initialized');
@@ -50,6 +54,94 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // Load model data if user is a model
+  const loadModelData = async (identifier) => {
+    if (!identifier) return;
+    
+    setModelLoading(true);
+    setModelError(null);
+    
+    try {
+      console.log(`Loading model data for identifier: ${identifier}`);
+      // Try to load by modelId first, if not available, try to search by email
+      let data;
+      try {
+        data = await modelsAPI.getModel(identifier);
+      } catch (error) {
+        if (error.status === 404 && currentUser?.email) {
+          // If model not found by ID, try to find by email
+          console.log(`Model not found by ID, searching by email: ${currentUser.email}`);
+          const allModels = await modelsAPI.getAllModels();
+          data = allModels.find(model => 
+            model.email && model.email.toLowerCase() === currentUser.email.toLowerCase()
+          );
+          
+          if (!data) {
+            throw new Error('Model not found by email');
+          }
+        } else {
+          throw error;
+        }
+      }
+      
+      console.log('Model data loaded:', data);
+      
+      // Update current user with the real model ID from the API
+      if (data && data.id && currentUser) {
+        console.log(`Updating current user with model ID: ${data.id}`);
+        setCurrentUser(prevUser => ({
+          ...prevUser,
+          modelId: data.id
+        }));
+      }
+      
+      setModelData(data);
+    } catch (error) {
+      console.error('Failed to load model data:', error);
+      setModelError(formatErrorMessage(error, 'Failed to load model information.'));
+    } finally {
+      setModelLoading(false);
+    }
+  };
+  
+  // Update model data
+  const updateModelData = async (modelId, updateData) => {
+    if (!modelId) return;
+    
+    setModelLoading(true);
+    setModelError(null);
+    
+    try {
+      console.log(`Updating model data for model ID: ${modelId}`, updateData);
+      const data = await modelsAPI.updateModel(modelId, updateData);
+      console.log('Model data updated:', data);
+      setModelData(data);
+      return data;
+    } catch (error) {
+      console.error('Failed to update model data:', error);
+      setModelError(formatErrorMessage(error, 'Failed to update model information.'));
+      throw error;
+    } finally {
+      setModelLoading(false);
+    }
+  };
+
+  // Get model jobs
+  const getModelJobs = async (modelId) => {
+    if (!modelId) return [];
+    
+    try {
+      console.log(`Getting jobs for model ID: ${modelId}`);
+      const jobs = await modelsAPI.getModelJobs(modelId);
+      console.log('Model jobs loaded:', jobs);
+      return jobs;
+    } catch (error) {
+      console.error('Failed to get model jobs:', error);
+      setModelError(formatErrorMessage(error, 'Failed to load model jobs.'));
+      return [];
+    }
+  };
+
   useEffect(() => {
     console.log('AuthContext useEffect running - checking stored token');
     // Check if there's a token in localStorage
@@ -75,6 +167,7 @@ export function AuthProvider({ children }) {
           email: claims.email,
           firstName: claims.firstName,
           lastName: claims.lastName,
+          role: claims.role,
           isManager: claims.role.toLowerCase() === 'manager',
           modelId: claims.modelId,
           token
@@ -82,6 +175,11 @@ export function AuthProvider({ children }) {
         
         console.log('Setting current user:', userData);
         setCurrentUser(userData);
+        
+        // Load model data if this user is a model
+        if (claims.modelId || claims.role.toLowerCase() === 'model') {
+          loadModelData(claims.modelId || userData.email);
+        }
       } catch (error) {
         console.error('Invalid token', error);
         localStorage.removeItem('token');
@@ -126,6 +224,7 @@ export function AuthProvider({ children }) {
           email: claims.email,
           firstName: claims.firstName,
           lastName: claims.lastName,
+          role: claims.role,
           isManager: claims.role.toLowerCase() === 'manager',
           modelId: claims.modelId,
           token
@@ -133,6 +232,12 @@ export function AuthProvider({ children }) {
         
         console.log('Login: Setting current user:', userData);
         setCurrentUser(userData);
+        
+        // Load model data if this user is a model
+        if (claims.modelId || claims.role.toLowerCase() === 'model') {
+          loadModelData(claims.modelId || userData.email);
+        }
+        
         console.log('Login successful');
         return true;
       } catch (tokenError) {
@@ -156,6 +261,7 @@ export function AuthProvider({ children }) {
     console.log('Logging out user:', currentUser?.email);
     localStorage.removeItem('token');
     setCurrentUser(null);
+    setModelData(null);
     navigate('/login');
     console.log('Logout complete, redirected to login');
   };
@@ -163,6 +269,11 @@ export function AuthProvider({ children }) {
   const clearAuthError = () => {
     console.log('Clearing auth error');
     setAuthError(null);
+  };
+  
+  const clearModelError = () => {
+    console.log('Clearing model error');
+    setModelError(null);
   };
 
   const value = {
@@ -173,16 +284,31 @@ export function AuthProvider({ children }) {
     logout,
     isAuthenticated: !!currentUser,
     isManager: currentUser?.isManager || false,
-    isModel: !currentUser?.isManager && !!currentUser?.modelId,
+    isModel: currentUser ? (currentUser.role?.toLowerCase() === 'model' || !!currentUser.modelId) : false,
     // Helper functions
     getFullName: () => currentUser ? `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() : '',
+    // Model-specific state and functions
+    modelData,
+    modelLoading,
+    modelError,
+    clearModelError,
+    updateModelData: (updateData) => {
+      const id = currentUser?.modelId || modelData?.id;
+      return updateModelData(id, updateData);
+    },
+    getModelJobs: () => getModelJobs(currentUser?.modelId || modelData?.id),
+    refreshModelData: () => loadModelData(currentUser?.modelId || currentUser?.email),
+    // Add direct access to model ID with fallbacks
+    getModelId: () => currentUser?.modelId || modelData?.id || (currentUser?.role?.toLowerCase() === 'model' ? currentUser?.email : null)
   };
 
   console.log('AuthContext value updated:', {
     isAuthenticated: !!currentUser,
     isManager: currentUser?.isManager || false,
-    isModel: !currentUser?.isManager && !!currentUser?.modelId,
-    hasError: !!authError
+    isModel: currentUser ? (currentUser.role?.toLowerCase() === 'model' || !!currentUser.modelId) : false,
+    hasError: !!authError,
+    hasModelData: !!modelData,
+    hasModelError: !!modelError
   });
 
   return (

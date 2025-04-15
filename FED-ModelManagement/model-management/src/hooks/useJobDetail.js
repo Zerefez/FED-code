@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { expensesAPI, jobsAPI, modelsAPI } from '../services/api';
 
 export default function useJobDetail(jobId) {
   const navigate = useNavigate();
-  const { isManager, currentUser } = useAuth();
+  const { isManager, currentUser, isModel, getModelId } = useAuth();
   const [job, setJob] = useState(null);
   const [models, setModels] = useState([]);
   const [availableModels, setAvailableModels] = useState([]);
@@ -62,8 +62,10 @@ export default function useJobDetail(jobId) {
         }
         
         // If this is a model's own job, fetch their expenses
-        if (!isManager && currentUser?.modelId) {
-          const modelExpenses = await expensesAPI.getModelExpenses(currentUser.modelId);
+        const modelId = getModelId();
+        if (!isManager && isModel && modelId) {
+          console.log(`useJobDetail: Loading expenses for model ID: ${modelId}`);
+          const modelExpenses = await expensesAPI.getModelExpenses(modelId);
           // Filter to only show expenses for this job
           setExpenses(modelExpenses.filter(expense => expense.jobId === parseInt(jobId)));
         }
@@ -76,7 +78,7 @@ export default function useJobDetail(jobId) {
     }
     
     fetchData();
-  }, [jobId, isManager, currentUser]);
+  }, [jobId, isManager, currentUser, isModel, getModelId]);
 
   // Handle edit form changes
   const handleEditChange = (e) => {
@@ -166,23 +168,59 @@ export default function useJobDetail(jobId) {
     }));
   };
 
-  // Add expense
+  // Check if the user can view and manage this job
+  const canViewJob = useMemo(() => {
+    // Managers can view all jobs
+    if (isManager) return true;
+    
+    // If the job is loaded and the user is a model
+    if (job && currentUser && isModel) {
+      const modelId = getModelId();
+      console.log('useJobDetail: Checking if model can view job', {
+        modelId,
+        jobModels: job.models
+      });
+      
+      // Check if this model is assigned to this job
+      return job.models?.some(model => 
+        String(model.id) === String(modelId) || 
+        String(model.modelId) === String(modelId) ||
+        model.email?.toLowerCase() === currentUser.email?.toLowerCase()
+      );
+    }
+    
+    return false;
+  }, [job, currentUser, isManager, isModel, getModelId]);
+
+  // Add expense - only allow if model is assigned to this job
   const addExpense = async (e) => {
     e.preventDefault();
     
+    if (!canViewJob) {
+      setError('You are not authorized to add expenses to this job');
+      return;
+    }
+    
+    const modelId = getModelId();
+    if (!modelId) {
+      setError('Could not determine your model ID. Please contact support.');
+      return;
+    }
+    
     try {
-      // Set the modelId to the current user's model ID if they're a model
+      // Set the modelId to the current user's model ID
       const expenseData = {
         ...newExpense,
-        modelId: currentUser.modelId,
+        modelId: modelId,
         amount: parseFloat(newExpense.amount)
       };
       
+      console.log('Adding expense with data:', expenseData);
       await expensesAPI.createExpense(expenseData);
       
       // Refresh expenses
-      const modelExpenses = await expensesAPI.getModelExpenses(currentUser.modelId);
-      setExpenses(modelExpenses.filter(expense => expense.jobId === parseInt(jobId)));
+      const refreshedExpenses = await expensesAPI.getModelExpenses(modelId);
+      setExpenses(refreshedExpenses.filter(expense => expense.jobId === parseInt(jobId)));
       
       // Reset form
       setNewExpense({
@@ -198,8 +236,24 @@ export default function useJobDetail(jobId) {
     }
   };
 
-  // Delete expense
+  // Delete expense - only allow if model owns the expense or is a manager
   const deleteExpense = async (expenseId) => {
+    const expenseToDelete = expenses.find(e => e.id === expenseId);
+    
+    // Check if the expense exists and belongs to this model
+    if (!expenseToDelete) {
+      setError('Expense not found');
+      return;
+    }
+    
+    const modelId = getModelId();
+    
+    // Only managers or the model who created the expense can delete it
+    if (!isManager && String(expenseToDelete.modelId) !== String(modelId)) {
+      setError('You do not have permission to delete this expense');
+      return;
+    }
+    
     if (!window.confirm('Are you sure you want to delete this expense?')) return;
     
     try {
