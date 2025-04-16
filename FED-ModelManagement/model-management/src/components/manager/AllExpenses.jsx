@@ -12,6 +12,7 @@ export default function AllExpenses() {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [modelNames] = useState({});
 
   useEffect(() => {
     async function fetchAllExpenses() {
@@ -57,6 +58,22 @@ export default function AllExpenses() {
     
     fetchAllExpenses();
   }, [isManager]);
+
+   // Get model name, using the cached version if available
+   const getDisplayModelName = (expense) => {
+    // If the expense already has a proper model name, use it
+    if (expense.modelName && !expense.modelName.startsWith('Model #')) {
+      return expense.modelName;
+    }
+    
+    // Otherwise check if we've loaded the name
+    if (modelNames[expense.modelId]) {
+      return modelNames[expense.modelId];
+    }
+    
+    // Fall back to the default
+    return `Model #${expense.modelId}`;
+  };
 
   if (loading) return <div className="text-center py-10 text-foreground">Loading expenses...</div>;
   
@@ -123,12 +140,7 @@ export default function AllExpenses() {
                 {expenses.map((expense, idx) => (
                   <tr key={expense.id || expense.expenseId} className={cn("border-b border-border", idx % 2 === 0 ? "bg-card" : "bg-secondary/10")}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
-                      <Link 
-                        to={`/models/${expense.modelId}/expenses`} 
-                        className="text-primary hover:underline"
-                      >
-                        {expense.modelName || `Model #${expense.modelId}`}
-                      </Link>
+                      {getDisplayModelName(expense)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                       <Link 

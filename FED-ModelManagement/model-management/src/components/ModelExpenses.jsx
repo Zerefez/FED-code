@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { expensesAPI } from '../services/api';
+import { expensesAPI, modelsAPI } from '../services/api';
 import { cn } from '../utils/cn';
 import Button from './common/Button';
 import { Card, CardContent, CardHeader, CardTitle } from './common/Card';
@@ -32,6 +32,7 @@ export default function ModelExpenses() {
     modelId: '',
     jobId: ''
   });
+  const [modelDetails, setModelDetails] = useState(null);
   
   // Get the current model's ID (for models viewing their own expenses)
   const currentModelId = getModelId();
@@ -135,6 +136,22 @@ export default function ModelExpenses() {
       setError('You do not have permission to view these expenses');
     }
   }, [id, canViewExpenses, currentModelId, selectedJobId]);
+
+  // Fetch model details when viewed by manager
+  useEffect(() => {
+    async function fetchModelDetails() {
+      if (!id || !isManager) return;
+      
+      try {
+        const modelData = await modelsAPI.getModel(id);
+        setModelDetails(modelData);
+      } catch (err) {
+        console.error('Error fetching model details:', err);
+      }
+    }
+    
+    fetchModelDetails();
+  }, [id, isManager]);
 
   // Filter expenses based on selected job and text filter
   const filteredExpenses = expenses
@@ -297,9 +314,11 @@ export default function ModelExpenses() {
   if (error) return <ErrorMessage error={error} />;
 
   // Determine model name from current user if available
-  const modelName = currentUser?.firstName && currentUser?.lastName 
-    ? `${currentUser.firstName} ${currentUser.lastName}`
-    : isModel ? currentUser?.email || 'Current Model' : `Model #${id}`;
+  const modelName = isManager 
+    ? modelDetails ? `${modelDetails.firstName} ${modelDetails.lastName}` : `Model #${id}`
+    : currentUser?.firstName && currentUser?.lastName 
+      ? `${currentUser.firstName} ${currentUser.lastName}`
+      : currentUser?.email || 'Current Model';
 
   if (!canViewExpenses) {
     return (
