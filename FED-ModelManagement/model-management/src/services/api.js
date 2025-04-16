@@ -430,9 +430,19 @@ export const expensesAPI = {
   // Model endpoint for updating their expense
   updateExpense: async (id, expenseData) => {
     try {
-      const response = await api.put(`/Expenses/${id}`, expenseData);
+      console.log(`API Service: Updating expense ${id} with data:`, expenseData);
+      
+      // Ensure we're using the right ID format
+      const expenseId = expenseData.expenseId || id;
+      
+      // Make a copy of the data without the expenseId field to avoid duplication
+      const { expenseId: _, ...updateData } = expenseData;
+      
+      const response = await api.put(`/Expenses/${expenseId}`, updateData);
+      console.log(`API Service: Successfully updated expense ${expenseId}:`, response.data);
       return response.data;
     } catch (error) {
+      console.error(`API Service: Error in updateExpense for ID ${id}:`, error);
       handleApiError(error, `updating expense ${id}`);
     }
   },

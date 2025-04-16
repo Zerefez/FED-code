@@ -116,7 +116,53 @@ export default function ModelExpenses() {
         // Fetch expenses for the model
         const expensesData = await expensesAPI.getModelExpenses(modelIdToUse);
         console.log('ModelExpenses: Successfully fetched expenses:', expensesData);
-        setExpenses(expensesData);
+        
+        // Log expense IDs to debug
+        console.log('ModelExpenses: Expense IDs:', expensesData.map(exp => exp.id || exp.expenseId));
+        console.log('ModelExpenses: Expense Job IDs:', expensesData.map(exp => exp.jobId));
+        console.log('ModelExpenses: Expense data detailed:', expensesData.map(exp => ({
+          id: exp.id || exp.expenseId,
+          jobId: exp.jobId,
+          amount: exp.amount,
+          date: exp.date,
+          text: exp.text
+        })));
+        
+        // Normalize expense data to ensure consistent property names
+        const normalizedExpenses = expensesData.map(expense => ({
+          ...expense,
+          id: expense.id || expense.expenseId // Ensure each expense has an id property
+        }));
+        
+        // Check if we have actual duplicates with the same ID
+        const idCounts = {};
+        normalizedExpenses.forEach(exp => {
+          idCounts[exp.id] = (idCounts[exp.id] || 0) + 1;
+        });
+        
+        const duplicateIds = Object.keys(idCounts).filter(id => idCounts[id] > 1);
+          
+        if (duplicateIds.length > 0) {
+          console.log('ModelExpenses: Found duplicate IDs:', duplicateIds);
+          
+          // Only filter actual duplicates if found
+          const uniqueExpenses = [];
+          const seenIds = new Set();
+          
+          normalizedExpenses.forEach(expense => {
+            if (!seenIds.has(expense.id)) {
+              seenIds.add(expense.id);
+              uniqueExpenses.push(expense);
+            } else {
+              console.log('ModelExpenses: Filtering out duplicate expense with ID:', expense.id);
+            }
+          });
+          
+          setExpenses(uniqueExpenses);
+        } else {
+          // No duplicates found, use all expenses
+          setExpenses(normalizedExpenses);
+        }
         
         // Get unique job IDs from expenses to create a job filter
         const jobIds = [...new Set(expensesData.map(exp => exp.jobId))];
@@ -135,7 +181,7 @@ export default function ModelExpenses() {
       setLoading(false);
       setError('You do not have permission to view these expenses');
     }
-  }, [id, canViewExpenses, currentModelId, selectedJobId]);
+  }, [id, canViewExpenses, currentModelId]);
 
   // Fetch model details when viewed by manager
   useEffect(() => {
@@ -155,7 +201,13 @@ export default function ModelExpenses() {
 
   // Filter expenses based on selected job and text filter
   const filteredExpenses = expenses
-    .filter(expense => !selectedJobId || String(expense.jobId) === String(selectedJobId))
+    .filter(expense => {
+      const jobMatch = !selectedJobId || String(expense.jobId) === String(selectedJobId);
+      if (selectedJobId && jobMatch) {
+        console.log('ModelExpenses: Job filter match for expense:', expense.id, 'with job:', expense.jobId);
+      }
+      return jobMatch;
+    })
     .filter(expense => {
       if (!filter) return true;
       const searchTerm = filter.toLowerCase();
@@ -164,6 +216,10 @@ export default function ModelExpenses() {
         (expense.jobCustomer && expense.jobCustomer.toLowerCase().includes(searchTerm))
       );
     });
+    
+  console.log('ModelExpenses: Selected job ID:', selectedJobId);
+  console.log('ModelExpenses: Filtered expenses count:', filteredExpenses.length);
+  console.log('ModelExpenses: Total expenses count:', expenses.length);
 
   // Get unique jobs from expenses for the job selector
   const expenseJobs = useMemo(() => {
@@ -245,7 +301,8 @@ export default function ModelExpenses() {
       return;
     }
     
-    setIsEditingExpense(expense.id);
+    const expenseId = expense.id || expense.expenseId;
+    setIsEditingExpense(expenseId);
     setEditFormData({
       date: expense.date ? new Date(expense.date).toISOString().split('T')[0] : '',
       amount: expense.amount,
@@ -272,21 +329,45 @@ export default function ModelExpenses() {
     }
     
     try {
-      const updatedExpense = await expensesAPI.updateExpense(expenseId, {
-        ...editFormData,
+      // Find the original expense to get data that might not be in the edit form
+      const originalExpense = expenses.find(exp => (exp.id || exp.expenseId) === expenseId);
+      if (!originalExpense) {
+        setError('Expense not found');
+        return;
+      }
+      
+      // Prepare complete update data with all required fields
+      const updateData = {
+        expenseId: originalExpense.expenseId || originalExpense.id,
+        modelId: originalExpense.modelId,
+        jobId: editFormData.jobId || originalExpense.jobId,
+        date: editFormData.date,
+        text: editFormData.text,
         amount: parseFloat(editFormData.amount)
-      });
+      };
+      
+      console.log('Updating expense with data:', updateData);
+      
+      // Use the API's expected expenseId rather than id
+      const apiId = originalExpense.expenseId || expenseId;
+      const updatedExpense = await expensesAPI.updateExpense(apiId, updateData);
+      
+      // Make sure the updated expense has an id property
+      if (updatedExpense.expenseId && !updatedExpense.id) {
+        updatedExpense.id = updatedExpense.expenseId;
+      }
       
       // Update the expense in the list
-      setExpenses(expenses.map(expense => 
-        expense.id === expenseId ? updatedExpense : expense
-      ));
+      setExpenses(expenses.map(expense => {
+        const currentId = expense.id || expense.expenseId;
+        return currentId === expenseId ? updatedExpense : expense;
+      }));
       
       // Exit edit mode
       cancelEditExpense();
     } catch (err) {
       setError('Failed to update expense');
-      console.error(err);
+      console.error('Error updating expense:', err);
     }
   };
 
@@ -302,7 +383,10 @@ export default function ModelExpenses() {
     try {
       await expensesAPI.deleteExpense(expenseId);
       // Remove from list
-      setExpenses(expenses.filter(expense => expense.id !== expenseId));
+      setExpenses(expenses.filter(expense => {
+        const currentId = expense.id || expense.expenseId;
+        return currentId !== expenseId;
+      }));
     } catch (err) {
       setError('Failed to delete expense');
       console.error(err);
@@ -355,6 +439,13 @@ export default function ModelExpenses() {
       </CardHeader>
       
       <CardContent>
+        {/* Display error message if present */}
+        {error && (
+          <div className="bg-destructive/20 border border-destructive text-destructive px-4 py-3 rounded-md mb-4">
+            {error}
+          </div>
+        )}
+        
         {/* Filtering Controls */}
         <div className="mb-6 flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
@@ -418,128 +509,131 @@ export default function ModelExpenses() {
                 </tr>
               </thead>
               <tbody>
-                {filteredExpenses.map((expense, idx) => (
-                  <tr key={expense.id} className={cn("border-b border-border", idx % 2 === 0 ? "bg-card" : "bg-secondary/10")}>
-                    {isEditingExpense === expense.id ? (
-                      <td colSpan={canModifyExpenses ? 5 : 4} className="px-6 py-4">
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-                          <div>
-                            <label htmlFor="jobId" className="block text-sm font-medium mb-1 text-foreground">
-                              Job
-                            </label>
-                            <select
-                              id="jobId"
-                              name="jobId"
-                              className="w-full p-2 border border-border rounded-md bg-background text-foreground"
-                              value={editFormData.jobId}
-                              onChange={handleEditInputChange}
-                              required
-                            >
-                              <option value="">Select a Job</option>
-                              {expenseJobs.map(job => (
-                                <option key={job.id} value={job.id}>
-                                  {job.customer}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                          <div>
-                            <label htmlFor="date" className="block text-sm font-medium mb-1 text-foreground">
-                              Date
-                            </label>
-                            <Input
-                              id="date"
-                              name="date"
-                              type="date"
-                              value={editFormData.date}
-                              onChange={handleEditInputChange}
-                              required
-                            />
-                          </div>
-                          <div>
-                            <label htmlFor="amount" className="block text-sm font-medium mb-1 text-foreground">
-                              Amount ($)
-                            </label>
-                            <Input
-                              id="amount"
-                              name="amount"
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              value={editFormData.amount}
-                              onChange={handleEditInputChange}
-                              required
-                            />
-                          </div>
-                          <div>
-                            <label htmlFor="text" className="block text-sm font-medium mb-1 text-foreground">
-                              Description
-                            </label>
-                            <Input
-                              id="text"
-                              name="text"
-                              value={editFormData.text}
-                              onChange={handleEditInputChange}
-                              required
-                            />
-                          </div>
-                          <div className="md:col-span-4 flex justify-end space-x-2 mt-2">
-                            <Button 
-                              variant="secondary" 
-                              size="sm" 
-                              onClick={cancelEditExpense}
-                            >
-                              Cancel
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              onClick={() => saveEditExpense(expense.id)}
-                            >
-                              Save
-                            </Button>
-                          </div>
-                        </div>
-                      </td>
-                    ) : (
-                      <>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
-                          <Link to={`/jobs/${expense.jobId}`} className="text-primary hover:underline">
-                            {expense.jobCustomer || `Job #${expense.jobId}`}
-                          </Link>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                          {new Date(expense.date).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                          ${expense.amount.toFixed(2)}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-muted-foreground">
-                          {expense.text}
-                        </td>
-                        {canModifyExpenses && (
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">
-                            <div className="flex space-x-2">
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => startEditExpense(expense)}
+                {filteredExpenses.map((expense, idx) => {
+                  const expenseId = expense.id || expense.expenseId;
+                  return (
+                    <tr key={expenseId} className={cn("border-b border-border", idx % 2 === 0 ? "bg-card" : "bg-secondary/10")}>
+                      {isEditingExpense === expenseId ? (
+                        <td colSpan={canModifyExpenses ? 5 : 4} className="px-6 py-4">
+                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+                            <div>
+                              <label htmlFor="jobId" className="block text-sm font-medium mb-1 text-foreground">
+                                Job
+                              </label>
+                              <select
+                                id="jobId"
+                                name="jobId"
+                                className="w-full p-2 border border-border rounded-md bg-background text-foreground"
+                                value={editFormData.jobId}
+                                onChange={handleEditInputChange}
+                                required
                               >
-                                Edit
+                                <option value="">Select a Job</option>
+                                {expenseJobs.map(job => (
+                                  <option key={job.id} value={job.id}>
+                                    {job.customer}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            <div>
+                              <label htmlFor="date" className="block text-sm font-medium mb-1 text-foreground">
+                                Date
+                              </label>
+                              <Input
+                                id="date"
+                                name="date"
+                                type="date"
+                                value={editFormData.date}
+                                onChange={handleEditInputChange}
+                                required
+                              />
+                            </div>
+                            <div>
+                              <label htmlFor="amount" className="block text-sm font-medium mb-1 text-foreground">
+                                Amount ($)
+                              </label>
+                              <Input
+                                id="amount"
+                                name="amount"
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={editFormData.amount}
+                                onChange={handleEditInputChange}
+                                required
+                              />
+                            </div>
+                            <div>
+                              <label htmlFor="text" className="block text-sm font-medium mb-1 text-foreground">
+                                Description
+                              </label>
+                              <Input
+                                id="text"
+                                name="text"
+                                value={editFormData.text}
+                                onChange={handleEditInputChange}
+                                required
+                              />
+                            </div>
+                            <div className="md:col-span-4 flex justify-end space-x-2 mt-2">
+                              <Button 
+                                variant="secondary" 
+                                size="sm" 
+                                onClick={cancelEditExpense}
+                              >
+                                Cancel
                               </Button>
                               <Button 
-                                variant="destructive" 
                                 size="sm" 
-                                onClick={() => deleteExpense(expense.id)}
+                                onClick={() => saveEditExpense(expenseId)}
                               >
-                                Delete
+                                Save
                               </Button>
                             </div>
+                          </div>
+                        </td>
+                      ) : (
+                        <>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
+                            <Link to={`/jobs/${expense.jobId}`} className="text-primary hover:underline">
+                              {expense.jobCustomer || `Job #${expense.jobId}`}
+                            </Link>
                           </td>
-                        )}
-                      </>
-                    )}
-                  </tr>
-                ))}
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                            {new Date(expense.date).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                            ${expense.amount.toFixed(2)}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-muted-foreground">
+                            {expense.text}
+                          </td>
+                          {canModifyExpenses && (
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              <div className="flex space-x-2">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  onClick={() => startEditExpense(expense)}
+                                >
+                                  Edit
+                                </Button>
+                                <Button 
+                                  variant="destructive" 
+                                  size="sm" 
+                                  onClick={() => deleteExpense(expenseId)}
+                                >
+                                  Delete
+                                </Button>
+                              </div>
+                            </td>
+                          )}
+                        </>
+                      )}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
