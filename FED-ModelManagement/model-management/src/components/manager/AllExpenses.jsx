@@ -12,7 +12,6 @@ export default function AllExpenses() {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [filter, setFilter] = useState('');
 
   useEffect(() => {
     async function fetchAllExpenses() {
@@ -59,16 +58,6 @@ export default function AllExpenses() {
     fetchAllExpenses();
   }, [isManager]);
 
-  // Filter expenses based on search input
-  const filteredExpenses = expenses.filter(expense => {
-    const searchTerm = filter.toLowerCase();
-    return (
-      (expense.modelName && expense.modelName.toLowerCase().includes(searchTerm)) ||
-      (expense.jobCustomer && expense.jobCustomer.toLowerCase().includes(searchTerm)) ||
-      (expense.text && expense.text.toLowerCase().includes(searchTerm))
-    );
-  });
-
   if (loading) return <div className="text-center py-10 text-foreground">Loading expenses...</div>;
   
   if (error) return <ErrorMessage error={error} />;
@@ -99,16 +88,9 @@ export default function AllExpenses() {
           <p className="text-sm text-muted-foreground mb-2">
             Note: All expense management has been consolidated to the Model Expenses section. Managers have view-only access.
           </p>
-          <input
-            type="text"
-            placeholder="Filter by model name, customer, or description..."
-            className="w-full p-2 border border-border rounded-md bg-background text-foreground"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-          />
         </div>
         
-        {filteredExpenses.length === 0 ? (
+        {expenses.length === 0 ? (
           <div className="bg-secondary/20 p-6 rounded-lg text-center text-muted-foreground">
             <p>No expenses found.</p>
           </div>
@@ -138,7 +120,7 @@ export default function AllExpenses() {
                 </tr>
               </thead>
               <tbody>
-                {filteredExpenses.map((expense, idx) => (
+                {expenses.map((expense, idx) => (
                   <tr key={expense.id || expense.expenseId} className={cn("border-b border-border", idx % 2 === 0 ? "bg-card" : "bg-secondary/10")}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                       <Link 
