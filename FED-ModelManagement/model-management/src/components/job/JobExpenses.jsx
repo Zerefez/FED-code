@@ -1,130 +1,151 @@
 import PropTypes from 'prop-types';
+import { useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { cn } from '../../utils/cn';
 import Button from '../common/Button';
-import Input from '../common/Input';
 
-export default function JobExpenses({ 
-  expenses, 
-  newExpense, 
-  handleExpenseChange, 
-  addExpense, 
-  deleteExpense, 
-  formatDate 
-}) {
+function JobExpenses({ expenses, job, isLoading, error }) {
+  const { isModel, getModelId } = useAuth();
+  const currentModelId = getModelId();
+
+  // Check if current model is assigned to this job
+  const isAssignedToJob = useMemo(() => {
+    if (!isModel || !job || !currentModelId) return false;
+    return job.modelId === currentModelId;
+  }, [job, isModel, currentModelId]);
+
+  // Determine if we should show the link to manage expenses
+  const shouldShowExpenseLink = isModel && isAssignedToJob;
+
+  if (isLoading) {
+    return <div className="text-center py-5">Loading expenses...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="bg-destructive/20 border border-destructive text-destructive px-4 py-3 rounded-md mb-4">
+        {error}
+      </div>
+    );
+  }
+
+  const hasExpenses = expenses && expenses.length > 0;
+
   return (
-    <div>
-      <h2 className="text-xl font-semibold mb-3 text-foreground">Expenses</h2>
-      
-      {expenses.length > 0 ? (
-        <div className="overflow-x-auto mb-6">
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-semibold text-foreground">Expenses</h2>
+        
+        {/* Link to the ModelExpenses page for expense management */}
+        {shouldShowExpenseLink && (
+          <Button variant="outline" asChild>
+            <Link to={`/models/${currentModelId}/expenses?jobId=${job.id}`}>
+              Manage Expenses
+            </Link>
+          </Button>
+        )}
+      </div>
+
+      {/* Notice about expense management */}
+      <div className="bg-blue-100/20 border border-blue-400 text-blue-800 dark:text-blue-300 px-4 py-3 rounded-md mb-4">
+        All expense management has been consolidated to the Model Expenses section.
+        {shouldShowExpenseLink && " Use the 'Manage Expenses' button to add, edit, or delete expenses for this job."}
+      </div>
+
+      {!hasExpenses ? (
+        <div className="text-center py-4 text-muted-foreground bg-secondary/20 rounded-md">
+          No expenses have been submitted for this job yet.
+          {shouldShowExpenseLink && (
+            <div className="mt-2">
+              <Link to={`/models/${currentModelId}/expenses?jobId=${job.id}`} className="text-primary hover:underline">
+                Add Expenses
+              </Link>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
               <tr className="border-b border-border">
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Model
+                </th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Date
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Amount
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Description
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Actions
+                <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Details
                 </th>
               </tr>
             </thead>
             <tbody>
-              {expenses.map((expense, idx) => (
-                <tr key={expense.id} className={cn("border-b border-border", idx % 2 === 0 ? "bg-card" : "bg-secondary/10")}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
-                    {formatDate(expense.date)}
+              {expenses.map((expense, index) => (
+                <tr 
+                  key={expense.id || expense.expenseId} 
+                  className={cn(
+                    "border-b border-border", 
+                    index % 2 === 0 ? "bg-card" : "bg-secondary/10"
+                  )}
+                >
+                  <td className="px-4 py-2 text-sm text-foreground">
+                    {expense.modelName || (expense.model ? `${expense.model.firstName} ${expense.model.lastName}` : 'Unknown Model')}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                    ${expense.amount.toFixed(2)}
+                  <td className="px-4 py-2 text-sm text-muted-foreground">
+                    {expense.date ? new Date(expense.date).toLocaleDateString() : 'N/A'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                    {expense.text}
+                  <td className="px-4 py-2 text-sm text-muted-foreground">
+                    ${expense.amount?.toFixed(2) || '0.00'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => deleteExpense(expense.id)}
-                    >
-                      Delete
-                    </Button>
+                  <td className="px-4 py-2 text-sm text-muted-foreground">
+                    {expense.text || 'No description'}
+                  </td>
+                  <td className="px-4 py-2 text-sm">
+                    {shouldShowExpenseLink && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        asChild
+                      >
+                        <Link to={`/models/${currentModelId}/expenses?jobId=${job.id}`}>
+                          Manage
+                        </Link>
+                      </Button>
+                    )}
+                    {!shouldShowExpenseLink && expense.modelId && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        asChild
+                      >
+                        <Link to={`/models/${expense.modelId}/expenses`}>
+                          View Details
+                        </Link>
+                      </Button>
+                    )}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      ) : (
-        <p className="bg-secondary/20 p-4 rounded-md text-muted-foreground mb-6">No expenses submitted for this job yet.</p>
       )}
-      
-      <div className="bg-secondary/20 p-4 rounded-md">
-        <h3 className="text-lg font-medium mb-3 text-foreground">Add New Expense</h3>
-        <form onSubmit={addExpense} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="date" className="block text-sm font-medium mb-1 text-foreground">
-                Date
-              </label>
-              <Input
-                id="date"
-                name="date"
-                type="date"
-                value={newExpense.date}
-                onChange={handleExpenseChange}
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="amount" className="block text-sm font-medium mb-1 text-foreground">
-                Amount ($)
-              </label>
-              <Input
-                id="amount"
-                name="amount"
-                type="number"
-                step="0.01"
-                min="0"
-                value={newExpense.amount}
-                onChange={handleExpenseChange}
-                required
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label htmlFor="text" className="block text-sm font-medium mb-1 text-foreground">
-                Description
-              </label>
-              <Input
-                id="text"
-                name="text"
-                value={newExpense.text}
-                onChange={handleExpenseChange}
-                required
-              />
-            </div>
-          </div>
-          <div className="flex justify-end">
-            <Button type="submit">
-              Add Expense
-            </Button>
-          </div>
-        </form>
-      </div>
     </div>
   );
 }
 
 JobExpenses.propTypes = {
-  expenses: PropTypes.array.isRequired,
-  newExpense: PropTypes.object.isRequired,
-  handleExpenseChange: PropTypes.func.isRequired,
-  addExpense: PropTypes.func.isRequired,
-  deleteExpense: PropTypes.func.isRequired,
-  formatDate: PropTypes.func.isRequired
-}; 
+  expenses: PropTypes.array,
+  job: PropTypes.object,
+  isLoading: PropTypes.bool,
+  error: PropTypes.string
+};
+
+export default JobExpenses; 

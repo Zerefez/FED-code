@@ -10,7 +10,7 @@ export default function useJobsList() {
   const [error, setError] = useState('');
   const [selectedJob, setSelectedJob] = useState(null);
   const [selectedModel, setSelectedModel] = useState('');
-  const { isManager } = useAuth();
+  const { isManager, isModel, getModelId } = useAuth();
   const { id } = useParams();
 
   useEffect(() => {
@@ -19,11 +19,29 @@ export default function useJobsList() {
         setLoading(true);
         setError('');
         const jobsData = await jobsAPI.getAllJobs();
-        setJobs(jobsData);
+        
+        // For models, filter jobs to only show their assigned jobs
+        let filteredJobs = jobsData;
+        if (isModel && !isManager) {
+          const modelId = getModelId();
+          if (modelId) {
+            // Filter to only include jobs where this model is assigned
+            filteredJobs = jobsData.filter(job => {
+              if (!job.models || !Array.isArray(job.models)) return false;
+              return job.models.some(model => 
+                String(model.id) === String(modelId) || 
+                String(model.modelId) === String(modelId)
+              );
+            });
+            console.log(`Filtered jobs for model ${modelId}:`, filteredJobs.length);
+          }
+        }
+        
+        setJobs(filteredJobs);
         
         // If there's an ID in the URL, select that job
         if (id) {
-          const jobFromUrl = jobsData.find(job => job.jobId.toString() === id);
+          const jobFromUrl = filteredJobs.find(job => job.jobId.toString() === id);
           
           if (jobFromUrl) {
             setSelectedJob(jobFromUrl);
@@ -45,7 +63,7 @@ export default function useJobsList() {
     }
     
     fetchData();
-  }, [isManager, id]);
+  }, [isManager, isModel, getModelId, id]);
 
   const addModelToJob = async (jobId) => {
     if (!selectedModel) return;

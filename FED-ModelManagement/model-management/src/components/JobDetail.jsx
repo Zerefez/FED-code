@@ -10,7 +10,7 @@ import JobModels from './job/JobModels';
 
 export default function JobDetail() {
   const { id } = useParams();
-  const { isManager, currentUser } = useAuth();
+  const { isManager, isModel, getModelId } = useAuth();
   
   const {
     job,
@@ -23,17 +23,17 @@ export default function JobDetail() {
     isEditing,
     setIsEditing,
     editFormData,
-    newExpense,
     handleEditChange,
     handleEditSubmit,
     addModelToJob,
     removeModelFromJob,
-    handleExpenseChange,
-    addExpense,
-    deleteExpense,
     deleteJob,
-    formatDate
+    formatDate,
+    isModelAssignedToJob
   } = useJobDetail(id);
+
+  // Get the current model's ID for redirects to expense management
+  const currentModelId = getModelId();
 
   if (loading) return <div className="text-center py-10 text-foreground">Loading job details...</div>;
   
@@ -89,16 +89,15 @@ export default function JobDetail() {
           removeModelFromJob={removeModelFromJob}
         />
         
-        {!isManager && currentUser?.modelId && (
-          <JobExpenses
-            expenses={expenses}
-            newExpense={newExpense}
-            handleExpenseChange={handleExpenseChange}
-            addExpense={addExpense}
-            deleteExpense={deleteExpense}
-            formatDate={formatDate}
-          />
-        )}
+        {/* Display expenses in a read-only view with links to manage them in the model expenses section */}
+        <JobExpenses
+          expenses={expenses}
+          formatDate={formatDate}
+          isManager={isManager}
+          isModel={isModel}
+          isModelAssignedToJob={isModelAssignedToJob}
+          currentModelId={currentModelId}
+        />
       </CardContent>
     </Card>
   );

@@ -1,311 +1,120 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { expensesAPI, jobsAPI, modelsAPI } from '../services/api';
 
-export default function useJobDetail(jobId) {
-  const navigate = useNavigate();
-  const { isManager, currentUser, isModel, getModelId } = useAuth();
+export function useJobDetail(jobId) {
   const [job, setJob] = useState(null);
-  const [models, setModels] = useState([]);
-  const [availableModels, setAvailableModels] = useState([]);
-  const [selectedModel, setSelectedModel] = useState('');
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [isEditing, setIsEditing] = useState(false);
-  const [editFormData, setEditFormData] = useState({
-    customer: '',
-    startDate: '',
-    days: 1,
-    location: '',
-    comments: ''
-  });
+  const [expenseError, setExpenseError] = useState('');
+  const navigate = useNavigate();
+  const { currentUser, isManager, isModel, getModelId } = useAuth();
+  
+  // Get current model ID for permissions
+  const currentModelId = getModelId();
 
-  const [newExpense, setNewExpense] = useState({
-    jobId: jobId,
-    modelId: '',
-    date: new Date().toISOString().split('T')[0],
-    amount: '',
-    text: ''
-  });
+  // Navigate to model expenses page (consolidated expense management)
+  const goToModelExpenses = useCallback(() => {
+    if (!currentUser) return;
+    
+    // If this is a model, go to their expenses page
+    if (isModel && currentModelId) {
+      navigate(`/models/${currentModelId}/expenses?jobId=${jobId}`);
+    } else if (isManager && job?.modelId) {
+      // If this is a manager, go to the model's expenses page
+      navigate(`/models/${job.modelId}/expenses?jobId=${jobId}`);
+    } else {
+      setExpenseError('Cannot navigate to expenses page - missing required information');
+    }
+  }, [currentUser, currentModelId, isManager, isModel, navigate, jobId, job]);
 
-  // Initial data loading
+  // Fetch all expenses for this job
+  const refreshExpenses = useCallback(async () => {
+    if (!jobId) return;
+    
+    try {
+      let jobExpenses = await expensesAPI.getJobExpenses(jobId);
+      
+      // If we're a model (not a manager), only show our own expenses
+      if (isModel && !isManager && currentModelId) {
+        jobExpenses = jobExpenses.filter(exp => 
+          String(exp.modelId) === String(currentModelId)
+        );
+      }
+      
+      // Fetch model data for each expense if needed
+      if (jobExpenses.length > 0 && !jobExpenses[0].modelName) {
+        // Get all unique model IDs from expenses
+        const modelIds = [...new Set(jobExpenses.map(exp => exp.modelId))];
+        
+        // Create a models lookup map
+        const modelsMap = {};
+        for (const modelId of modelIds) {
+          try {
+            const modelData = await modelsAPI.getModel(modelId);
+            modelsMap[modelId] = modelData;
+          } catch (error) {
+            console.error(`Failed to fetch model data for ID ${modelId}`, error);
+          }
+        }
+        
+        // Enrich expenses with model data
+        jobExpenses = jobExpenses.map(expense => {
+          const model = modelsMap[expense.modelId];
+          return {
+            ...expense,
+            modelName: model ? `${model.firstName} ${model.lastName}` : `Model #${expense.modelId}`
+          };
+        });
+      }
+      
+      setExpenses(jobExpenses);
+      setExpenseError('');
+    } catch (err) {
+      console.error('Failed to fetch job expenses', err);
+      setExpenseError('Failed to fetch expenses for this job');
+    }
+  }, [jobId, isModel, isManager, currentModelId]);
+
+  // Initial data fetch
   useEffect(() => {
-    async function fetchData() {
+    async function fetchJobData() {
       try {
         setLoading(true);
+        setError('');
+        
+        if (!jobId) {
+          setError('No job ID provided');
+          setLoading(false);
+          return;
+        }
+        
         const jobData = await jobsAPI.getJob(jobId);
         setJob(jobData);
         
-        // Initialize edit form data
-        if (jobData) {
-          setEditFormData({
-            customer: jobData.customer || '',
-            startDate: jobData.startDate ? new Date(jobData.startDate).toISOString().split('T')[0] : '',
-            days: jobData.days || 1,
-            location: jobData.location || '',
-            comments: jobData.comments || ''
-          });
-        }
+        // Fetch expenses for this job
+        await refreshExpenses();
         
-        if (isManager) {
-          const modelsData = await modelsAPI.getAllModels();
-          setModels(modelsData);
-          
-          // Filter out models already assigned to this job
-          const jobModelIds = jobData.models.map(model => model.modelId || model.id);
-          setAvailableModels(modelsData.filter(model => {
-            const modelIdentifier = model.modelId || model.id;
-            return !jobModelIds.includes(modelIdentifier);
-          }));
-        }
-        
-        // If this is a model's own job, fetch their expenses
-        const modelId = getModelId();
-        if (!isManager && isModel && modelId) {
-          console.log(`useJobDetail: Loading expenses for model ID: ${modelId}`);
-          const modelExpenses = await expensesAPI.getModelExpenses(modelId);
-          // Filter to only show expenses for this job
-          setExpenses(modelExpenses.filter(expense => expense.jobId === parseInt(jobId)));
-        }
+        setLoading(false);
       } catch (err) {
-        setError('Failed to load job details');
-        console.error(err);
-      } finally {
+        console.error('Failed to fetch job details', err);
+        setError('Failed to fetch job details');
         setLoading(false);
       }
     }
     
-    fetchData();
-  }, [jobId, isManager, currentUser, isModel, getModelId]);
-
-  // Handle edit form changes
-  const handleEditChange = (e) => {
-    const { name, value } = e.target;
-    setEditFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  // Submit job edits
-  const handleEditSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    
-    try {
-      // Format the data as needed for the API
-      const jobData = {
-        ...editFormData,
-        days: parseInt(editFormData.days),
-        startDate: new Date(editFormData.startDate).toISOString()
-      };
-      
-      await jobsAPI.updateJob(jobId, jobData);
-      
-      // Refresh job data
-      const updatedJob = await jobsAPI.getJob(jobId);
-      setJob(updatedJob);
-      
-      // Exit edit mode
-      setIsEditing(false);
-    } catch (err) {
-      setError('Failed to update job');
-      console.error(err);
-    }
-  };
-
-  // Add model to job
-  const addModelToJob = async () => {
-    if (!selectedModel) return;
-    
-    try {
-      await jobsAPI.addModelToJob(jobId, selectedModel);
-      // Refresh job data
-      const updatedJob = await jobsAPI.getJob(jobId);
-      setJob(updatedJob);
-      setSelectedModel('');
-      
-      // Update available models
-      const jobModelIds = updatedJob.models.map(model => model.modelId || model.id);
-      setAvailableModels(models.filter(model => {
-        const modelIdentifier = model.modelId || model.id;
-        return !jobModelIds.includes(modelIdentifier);
-      }));
-    } catch (err) {
-      setError('Failed to add model to job');
-      console.error(err);
-    }
-  };
-
-  // Remove model from job
-  const removeModelFromJob = async (modelId) => {
-    try {
-      await jobsAPI.removeModelFromJob(jobId, modelId);
-      // Refresh job data
-      const updatedJob = await jobsAPI.getJob(jobId);
-      setJob(updatedJob);
-      
-      // Update available models
-      const jobModelIds = updatedJob.models.map(model => model.modelId || model.id);
-      setAvailableModels(models.filter(model => {
-        const modelIdentifier = model.modelId || model.id;
-        return !jobModelIds.includes(modelIdentifier);
-      }));
-    } catch (err) {
-      setError('Failed to remove model from job');
-      console.error(err);
-    }
-  };
-
-  // Handle expense form changes
-  const handleExpenseChange = (e) => {
-    const { name, value } = e.target;
-    setNewExpense(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  // Check if the user can view and manage this job
-  const canViewJob = useMemo(() => {
-    // Managers can view all jobs
-    if (isManager) return true;
-    
-    // If the job is loaded and the user is a model
-    if (job && currentUser && isModel) {
-      const modelId = getModelId();
-      console.log('useJobDetail: Checking if model can view job', {
-        modelId,
-        jobModels: job.models
-      });
-      
-      // Check if this model is assigned to this job
-      return job.models?.some(model => 
-        String(model.id) === String(modelId) || 
-        String(model.modelId) === String(modelId) ||
-        model.email?.toLowerCase() === currentUser.email?.toLowerCase()
-      );
-    }
-    
-    return false;
-  }, [job, currentUser, isManager, isModel, getModelId]);
-
-  // Add expense - only allow if model is assigned to this job
-  const addExpense = async (e) => {
-    e.preventDefault();
-    
-    if (!canViewJob) {
-      setError('You are not authorized to add expenses to this job');
-      return;
-    }
-    
-    const modelId = getModelId();
-    if (!modelId) {
-      setError('Could not determine your model ID. Please contact support.');
-      return;
-    }
-    
-    try {
-      // Set the modelId to the current user's model ID
-      const expenseData = {
-        ...newExpense,
-        modelId: modelId,
-        amount: parseFloat(newExpense.amount)
-      };
-      
-      console.log('Adding expense with data:', expenseData);
-      await expensesAPI.createExpense(expenseData);
-      
-      // Refresh expenses
-      const refreshedExpenses = await expensesAPI.getModelExpenses(modelId);
-      setExpenses(refreshedExpenses.filter(expense => expense.jobId === parseInt(jobId)));
-      
-      // Reset form
-      setNewExpense({
-        jobId: jobId,
-        modelId: '',
-        date: new Date().toISOString().split('T')[0],
-        amount: '',
-        text: ''
-      });
-    } catch (err) {
-      setError('Failed to add expense');
-      console.error(err);
-    }
-  };
-
-  // Delete expense - only allow if model owns the expense or is a manager
-  const deleteExpense = async (expenseId) => {
-    const expenseToDelete = expenses.find(e => e.id === expenseId);
-    
-    // Check if the expense exists and belongs to this model
-    if (!expenseToDelete) {
-      setError('Expense not found');
-      return;
-    }
-    
-    const modelId = getModelId();
-    
-    // Only managers or the model who created the expense can delete it
-    if (!isManager && String(expenseToDelete.modelId) !== String(modelId)) {
-      setError('You do not have permission to delete this expense');
-      return;
-    }
-    
-    if (!window.confirm('Are you sure you want to delete this expense?')) return;
-    
-    try {
-      await expensesAPI.deleteExpense(expenseId);
-      // Remove from list
-      setExpenses(expenses.filter(expense => expense.id !== expenseId));
-    } catch (err) {
-      setError('Failed to delete expense');
-      console.error(err);
-    }
-  };
-
-  // Delete job
-  const deleteJob = async () => {
-    if (!window.confirm('Are you sure you want to delete this job?')) return;
-    
-    try {
-      await jobsAPI.deleteJob(jobId);
-      navigate('/jobs');
-    } catch (err) {
-      setError('Failed to delete job');
-      console.error(err);
-    }
-  };
-
-  // Format date for display
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString();
-  };
+    fetchJobData();
+  }, [jobId, refreshExpenses]);
 
   return {
     job,
-    models,
-    availableModels,
-    selectedModel,
-    setSelectedModel,
     expenses,
     loading,
     error,
-    isEditing,
-    setIsEditing,
-    editFormData,
-    newExpense,
-    handleEditChange,
-    handleEditSubmit,
-    addModelToJob,
-    removeModelFromJob,
-    handleExpenseChange,
-    addExpense,
-    deleteExpense,
-    deleteJob,
-    formatDate
+    expenseError,
+    refreshExpenses,
+    goToModelExpenses
   };
 } 

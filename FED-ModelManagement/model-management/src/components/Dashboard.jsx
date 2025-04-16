@@ -11,13 +11,17 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false);
 
   // Get correct model identifier for navigation
-  const modelIdentifier = getModelId();
+  const modelIdentifier = getModelId() || (currentUser?.email && isModel ? currentUser.email : null);
+  
+  // Ensure user is a model but not a manager for model-specific content
+  const isModelOnly = isModel && !isManager;
   
   // Debug the model state right away
   console.log('Dashboard: Initial state', { 
     modelIdentifier, 
     isModel, 
-    isManager, 
+    isManager,
+    isModelOnly,
     currentUser
   });
   
@@ -119,19 +123,26 @@ export default function Dashboard() {
                 title="Create New Job"
                 description="Create a new job in the system"
               />
+              
+              <DashboardCard 
+                to="/expenses"
+                title="All Expenses"
+                description="View and manage all model expenses across jobs"
+              />
             </div>
           </div>
-        ) : isModel ? (
+        ) : isModelOnly ? (
           <div className="mt-6">
             <h2 className="text-xl font-semibold mb-4">Model Actions:</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* For models - use the ID from getModelId function */}
+              {/* For models - Jobs link */}
               <DashboardCard 
                 to="/jobs"
-                title="My Jobs"
-                description="View all jobs you are assigned to"
+                title="Jobs"
+                description="View and manage your assigned jobs"
               />
               
+              {/* Expenses for models */}
               <DashboardCard 
                 to={`/models/${modelIdentifier}/expenses`}
                 title="My Expenses"

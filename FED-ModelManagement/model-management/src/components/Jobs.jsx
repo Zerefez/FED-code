@@ -98,7 +98,7 @@ export default function Jobs() {
         <CardTitle>
           {id && selectedJob 
             ? `Job: ${selectedJob.customer}` 
-            : 'Jobs'}
+            : isManager ? 'All Jobs' : 'My Assigned Jobs'}
         </CardTitle>
         <div className="flex space-x-2">
           {id && (

@@ -1,89 +1,286 @@
-import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { expensesAPI, modelsAPI } from '../services/api';
+import { expensesAPI } from '../services/api';
 import { cn } from '../utils/cn';
 import Button from './common/Button';
 import { Card, CardContent, CardHeader, CardTitle } from './common/Card';
 import ErrorMessage from './common/ErrorMessage';
+import Input from './common/Input';
 
 export default function ModelExpenses() {
   const { id } = useParams();
-  const { isManager, currentUser, isModel, getModelId } = useAuth();
-  const [model, setModel] = useState(null);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { isManager, isModel, getModelId, currentUser } = useAuth();
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isEditingExpense, setIsEditingExpense] = useState(null);
+  const [selectedJobId, setSelectedJobId] = useState('');
+  const [filter, setFilter] = useState('');
+  const [editFormData, setEditFormData] = useState({
+    date: '',
+    amount: '',
+    text: '',
+    jobId: ''
+  });
+  const [newExpense, setNewExpense] = useState({
+    date: new Date().toISOString().split('T')[0],
+    amount: '',
+    text: '',
+    modelId: '',
+    jobId: ''
+  });
+  
+  // Get the current model's ID (for models viewing their own expenses)
+  const currentModelId = getModelId();
+  
+  // If URL doesn't have an ID but user is a model, redirect to their expenses
+  useEffect(() => {
+    // Special case for when an email is used as the ID (happens with JWT tokens)
+    const isEmailId = id && id.includes('@');
+    
+    // Redirect managers to the AllExpenses view
+    if (isManager && !isModel) {
+      console.log('ModelExpenses: Redirecting manager to AllExpenses view');
+      navigate('/expenses', { replace: true });
+      return;
+    }
+    
+    if (isModel && currentModelId && !id) {
+      // Redirect to the current model's expenses page
+      navigate(`/models/${currentModelId}/expenses${location.search}`, { replace: true });
+    } else if (isModel && currentUser && isEmailId && currentUser.email === id) {
+      // We have a model with an email as ID, try to use the numeric ID instead
+      if (currentModelId && currentModelId !== id) {
+        navigate(`/models/${currentModelId}/expenses${location.search}`, { replace: true });
+      }
+    }
+  }, [id, isModel, isManager, currentModelId, navigate, location.search, currentUser]);
+  
+  // Check if the user is allowed to view/edit these expenses
+  const canViewExpenses = isManager || 
+    (isModel && currentModelId && (
+      String(currentModelId) === String(id) || 
+      (currentUser?.email && currentUser.email === id)
+    ));
+    
+  // Check if the user is allowed to modify these expenses (only the model itself)
+  const canModifyExpenses = isModel && (
+    (currentModelId && String(currentModelId) === String(id)) || 
+    (currentUser?.email && currentUser.email === id)
+  );
 
+  // Parse job ID from query parameter if present
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const jobId = params.get('jobId');
+    if (jobId) {
+      setSelectedJobId(jobId);
+      
+      // Set the job ID in the new expense form
+      setNewExpense(prev => ({
+        ...prev,
+        jobId: jobId,
+        modelId: id || currentModelId
+      }));
+    }
+  }, [location, id, currentModelId]);
+
+  // Fetch expense data
   useEffect(() => {
     async function fetchData() {
       try {
         setLoading(true);
         setError('');
-        
-        // Get the correct model ID
-        const currentModelId = getModelId();
-        console.log('ModelExpenses: Current model ID:', currentModelId);
-        
-        // Permission check - only allow if user is a manager or this is their own model ID
-        const hasPermission = isManager || 
-          (isModel && currentModelId && 
-            (String(currentModelId) === String(id) || 
-             currentUser?.email?.toLowerCase() === id?.toLowerCase()));
-        
-        if (!hasPermission) {
-          console.log('ModelExpenses: Permission denied', { 
-            isManager, 
-            isModel,
-            currentModelId,
-            requestedModelId: id 
-          });
-          setError('You do not have permission to view these expenses');
+
+        console.log('ModelExpenses: Starting data fetch for model ID:', id || currentModelId);
+
+        if (!id && !currentModelId) {
+          setError('No model ID available');
           setLoading(false);
           return;
         }
         
-        // Get model info first
-        let modelData;
-        let modelId = id;
+        // Determine which model ID to use
+        const modelIdToUse = id || currentModelId;
         
-        if (isModel && !isManager) {
-          // If this is a model user, ensure they can only view their own expenses
-          modelId = currentModelId;
-          console.log(`ModelExpenses: Model viewing own expenses with ID: ${modelId}`);
-          modelData = await modelsAPI.getModel(modelId);
-        } else {
-          // Managers can view any model's expenses
-          console.log(`ModelExpenses: Manager viewing expenses for model ID: ${id}`);
-          modelData = await modelsAPI.getModel(id);
-        }
-        
-        setModel(modelData);
-        
-        // Then get expenses
-        const expensesData = await expensesAPI.getModelExpenses(modelId);
+        // Set the model ID in the new expense form
+        setNewExpense(prev => ({
+          ...prev,
+          modelId: modelIdToUse
+        }));
+
+        // Fetch expenses for the model
+        const expensesData = await expensesAPI.getModelExpenses(modelIdToUse);
+        console.log('ModelExpenses: Successfully fetched expenses:', expensesData);
         setExpenses(expensesData);
-      } catch (err) {
-        setError('Failed to fetch data');
-        console.error(err);
+        
+        // Get unique job IDs from expenses to create a job filter
+        const jobIds = [...new Set(expensesData.map(exp => exp.jobId))];
+        console.log('ModelExpenses: Available job IDs from expenses:', jobIds);
+      } catch (fetchError) {
+        console.error('ModelExpenses: Error fetching expense data:', fetchError);
+        setError('Failed to fetch expense data');
       } finally {
         setLoading(false);
       }
     }
     
-    fetchData();
-  }, [id, isManager, currentUser, isModel, getModelId]);
+    if (canViewExpenses) {
+      fetchData();
+    } else {
+      setLoading(false);
+      setError('You do not have permission to view these expenses');
+    }
+  }, [id, canViewExpenses, currentModelId, selectedJobId]);
 
-  // Check if the user is allowed to view expenses
-  const canViewExpenses = isManager || (
-    isModel && (
-      String(getModelId()) === String(id) || 
-      currentUser?.email?.toLowerCase() === id?.toLowerCase()
-    )
-  );
+  // Filter expenses based on selected job and text filter
+  const filteredExpenses = expenses
+    .filter(expense => !selectedJobId || String(expense.jobId) === String(selectedJobId))
+    .filter(expense => {
+      if (!filter) return true;
+      const searchTerm = filter.toLowerCase();
+      return (
+        (expense.text && expense.text.toLowerCase().includes(searchTerm)) ||
+        (expense.jobCustomer && expense.jobCustomer.toLowerCase().includes(searchTerm))
+      );
+    });
+
+  // Get unique jobs from expenses for the job selector
+  const expenseJobs = useMemo(() => {
+    const uniqueJobs = [];
+    const jobIds = new Set();
+    
+    expenses.forEach(expense => {
+      if (!jobIds.has(expense.jobId)) {
+        jobIds.add(expense.jobId);
+        uniqueJobs.push({
+          id: expense.jobId,
+          customer: expense.jobCustomer || `Job #${expense.jobId}`
+        });
+      }
+    });
+    
+    return uniqueJobs;
+  }, [expenses]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewExpense({
+      ...newExpense,
+      [name]: name === 'amount' ? parseFloat(value) || '' : value
+    });
+  };
+
+  const handleEditInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditFormData({
+      ...editFormData,
+      [name]: name === 'amount' ? parseFloat(value) || '' : value
+    });
+  };
+
+  const handleAddExpense = async (e) => {
+    e.preventDefault();
+    
+    // Only models can add their own expenses
+    if (!canModifyExpenses) {
+      setError('You do not have permission to add expenses');
+      return;
+    }
+    
+    // Get the actual model ID to use
+    const actualModelId = id || currentModelId;
+    
+    try {
+      const expenseData = {
+        ...newExpense,
+        modelId: actualModelId,
+        amount: parseFloat(newExpense.amount)
+      };
+      
+      console.log('Adding expense with data:', expenseData);
+      const createdExpense = await expensesAPI.createExpense(expenseData);
+      
+      // Add the new expense to the list
+      setExpenses([...expenses, createdExpense]);
+      
+      // Reset form but keep job ID and model ID
+      setNewExpense({
+        date: new Date().toISOString().split('T')[0],
+        amount: '',
+        text: '',
+        modelId: actualModelId,
+        jobId: newExpense.jobId // Keep the job ID if set
+      });
+    } catch (err) {
+      setError('Failed to add expense');
+      console.error(err);
+    }
+  };
+
+  const startEditExpense = (expense) => {
+    // Only models can edit their own expenses
+    if (!canModifyExpenses) {
+      setError('You do not have permission to edit expenses');
+      return;
+    }
+    
+    setIsEditingExpense(expense.id);
+    setEditFormData({
+      date: expense.date ? new Date(expense.date).toISOString().split('T')[0] : '',
+      amount: expense.amount,
+      text: expense.text,
+      jobId: expense.jobId
+    });
+  };
+
+  const cancelEditExpense = () => {
+    setIsEditingExpense(null);
+    setEditFormData({
+      date: '',
+      amount: '',
+      text: '',
+      jobId: ''
+    });
+  };
+
+  const saveEditExpense = async (expenseId) => {
+    // Only models can edit their own expenses
+    if (!canModifyExpenses) {
+      setError('You do not have permission to edit expenses');
+      return;
+    }
+    
+    try {
+      const updatedExpense = await expensesAPI.updateExpense(expenseId, {
+        ...editFormData,
+        amount: parseFloat(editFormData.amount)
+      });
+      
+      // Update the expense in the list
+      setExpenses(expenses.map(expense => 
+        expense.id === expenseId ? updatedExpense : expense
+      ));
+      
+      // Exit edit mode
+      cancelEditExpense();
+    } catch (err) {
+      setError('Failed to update expense');
+      console.error(err);
+    }
+  };
 
   const deleteExpense = async (expenseId) => {
     if (!window.confirm('Are you sure you want to delete this expense?')) return;
+    
+    // Only models can delete their own expenses
+    if (!canModifyExpenses) {
+      setError('You do not have permission to delete expenses');
+      return;
+    }
     
     try {
       await expensesAPI.deleteExpense(expenseId);
@@ -99,7 +296,10 @@ export default function ModelExpenses() {
   
   if (error) return <ErrorMessage error={error} />;
 
-  if (!model) return <div className="text-center py-10 text-foreground">Model not found</div>;
+  // Determine model name from current user if available
+  const modelName = currentUser?.firstName && currentUser?.lastName 
+    ? `${currentUser.firstName} ${currentUser.lastName}`
+    : isModel ? currentUser?.email || 'Current Model' : `Model #${id}`;
 
   if (!canViewExpenses) {
     return (
@@ -112,39 +312,70 @@ export default function ModelExpenses() {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Expenses for {model.firstName} {model.lastName}</CardTitle>
+        <CardTitle>Expenses for {modelName}</CardTitle>
         <div className="flex space-x-2">
           <Button variant="outline" asChild>
-            <Link to={`/models/${isModel && !isManager ? getModelId() : id}/jobs`}>
+            <Link to={`/models/${id || currentModelId}/jobs`}>
               View Jobs
             </Link>
           </Button>
-          <Button variant="outline" asChild>
-            <Link to={isManager ? "/models" : "/dashboard"}>
-              {isManager ? "Back to Models" : "Back to Dashboard"}
-            </Link>
-          </Button>
+          {isManager ? (
+            <Button variant="outline" asChild>
+              <Link to="/models">
+                Back to Models
+              </Link>
+            </Button>
+          ) : (
+            <Button variant="outline" asChild>
+              <Link to="/dashboard">
+                Back to Dashboard
+              </Link>
+            </Button>
+          )}
         </div>
       </CardHeader>
       
       <CardContent>
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-2 text-foreground">Model Information</h2>
-          <div className="bg-secondary/20 p-4 rounded-md mb-4">
-            <p className="mb-1 text-muted-foreground"><span className="font-medium text-foreground">Name:</span> {model.firstName} {model.lastName}</p>
-            <p className="mb-1 text-muted-foreground"><span className="font-medium text-foreground">Email:</span> {model.email}</p>
-            {model.phoneNo && (
-              <p className="mb-1 text-muted-foreground"><span className="font-medium text-foreground">Phone:</span> {model.phoneNo}</p>
-            )}
+        {/* Filtering Controls */}
+        <div className="mb-6 flex flex-col sm:flex-row gap-4">
+          <div className="flex-1">
+            <label htmlFor="filter" className="block text-sm font-medium mb-1 text-foreground">
+              Filter Expenses
+            </label>
+            <Input
+              id="filter"
+              type="text"
+              placeholder="Search by description..."
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+            />
+          </div>
+          <div className="flex-1">
+            <label htmlFor="jobFilter" className="block text-sm font-medium mb-1 text-foreground">
+              Filter by Job
+            </label>
+            <select
+              id="jobFilter"
+              className="w-full p-2 border border-border rounded-md bg-background text-foreground"
+              value={selectedJobId}
+              onChange={(e) => setSelectedJobId(e.target.value)}
+            >
+              <option value="">All Jobs</option>
+              {expenseJobs.map(job => (
+                <option key={job.id} value={job.id}>
+                  {job.customer}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
         
-        <h2 className="text-xl font-semibold mb-3 text-foreground">Expenses</h2>
-        
-        {expenses.length === 0 ? (
-          <p className="bg-secondary/20 p-4 rounded-md text-muted-foreground">No expenses recorded for this model.</p>
+        {filteredExpenses.length === 0 ? (
+          <div className="bg-secondary/20 p-6 rounded-lg text-center text-muted-foreground mb-6">
+            <p>No expenses found matching your criteria.</p>
+          </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto mb-6">
             <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b border-border">
@@ -160,46 +391,214 @@ export default function ModelExpenses() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Description
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Actions
-                  </th>
+                  {canModifyExpenses && (
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Actions
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody>
-                {expenses.map((expense, idx) => (
+                {filteredExpenses.map((expense, idx) => (
                   <tr key={expense.id} className={cn("border-b border-border", idx % 2 === 0 ? "bg-card" : "bg-secondary/10")}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
-                      {expense.jobCustomer || `Job #${expense.jobId}`}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                      {new Date(expense.date).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                      ${expense.amount.toFixed(2)}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">
-                      {expense.text}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <div className="flex space-x-2">
-                        <Button variant="outline" size="sm" asChild>
-                          <Link to={`/jobs/${expense.jobId}`}>
-                            View Job
+                    {isEditingExpense === expense.id ? (
+                      <td colSpan={canModifyExpenses ? 5 : 4} className="px-6 py-4">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+                          <div>
+                            <label htmlFor="jobId" className="block text-sm font-medium mb-1 text-foreground">
+                              Job
+                            </label>
+                            <select
+                              id="jobId"
+                              name="jobId"
+                              className="w-full p-2 border border-border rounded-md bg-background text-foreground"
+                              value={editFormData.jobId}
+                              onChange={handleEditInputChange}
+                              required
+                            >
+                              <option value="">Select a Job</option>
+                              {expenseJobs.map(job => (
+                                <option key={job.id} value={job.id}>
+                                  {job.customer}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label htmlFor="date" className="block text-sm font-medium mb-1 text-foreground">
+                              Date
+                            </label>
+                            <Input
+                              id="date"
+                              name="date"
+                              type="date"
+                              value={editFormData.date}
+                              onChange={handleEditInputChange}
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label htmlFor="amount" className="block text-sm font-medium mb-1 text-foreground">
+                              Amount ($)
+                            </label>
+                            <Input
+                              id="amount"
+                              name="amount"
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={editFormData.amount}
+                              onChange={handleEditInputChange}
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label htmlFor="text" className="block text-sm font-medium mb-1 text-foreground">
+                              Description
+                            </label>
+                            <Input
+                              id="text"
+                              name="text"
+                              value={editFormData.text}
+                              onChange={handleEditInputChange}
+                              required
+                            />
+                          </div>
+                          <div className="md:col-span-4 flex justify-end space-x-2 mt-2">
+                            <Button 
+                              variant="secondary" 
+                              size="sm" 
+                              onClick={cancelEditExpense}
+                            >
+                              Cancel
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              onClick={() => saveEditExpense(expense.id)}
+                            >
+                              Save
+                            </Button>
+                          </div>
+                        </div>
+                      </td>
+                    ) : (
+                      <>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
+                          <Link to={`/jobs/${expense.jobId}`} className="text-primary hover:underline">
+                            {expense.jobCustomer || `Job #${expense.jobId}`}
                           </Link>
-                        </Button>
-                        <Button 
-                          variant="destructive" 
-                          size="sm" 
-                          onClick={() => deleteExpense(expense.id)}
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                    </td>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                          {new Date(expense.date).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                          ${expense.amount.toFixed(2)}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-muted-foreground">
+                          {expense.text}
+                        </td>
+                        {canModifyExpenses && (
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            <div className="flex space-x-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => startEditExpense(expense)}
+                              >
+                                Edit
+                              </Button>
+                              <Button 
+                                variant="destructive" 
+                                size="sm" 
+                                onClick={() => deleteExpense(expense.id)}
+                              >
+                                Delete
+                              </Button>
+                            </div>
+                          </td>
+                        )}
+                      </>
+                    )}
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+        
+        {/* Form to add new expense - available for models only */}
+        {canModifyExpenses && (
+          <div className="bg-secondary/20 p-4 rounded-md">
+            <h3 className="text-lg font-medium mb-3 text-foreground">Add New Expense</h3>
+            <form onSubmit={handleAddExpense} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                  <label htmlFor="jobId" className="block text-sm font-medium mb-1 text-foreground">
+                    Job
+                  </label>
+                  <select
+                    id="jobId"
+                    name="jobId"
+                    className="w-full p-2 border border-border rounded-md bg-background text-foreground"
+                    value={newExpense.jobId}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value="">Select a Job</option>
+                    {expenseJobs.map(job => (
+                      <option key={job.id} value={job.id}>
+                        {job.customer}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="date" className="block text-sm font-medium mb-1 text-foreground">
+                    Date
+                  </label>
+                  <Input
+                    id="date"
+                    name="date"
+                    type="date"
+                    value={newExpense.date}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div>
+                  <label htmlFor="amount" className="block text-sm font-medium mb-1 text-foreground">
+                    Amount ($)
+                  </label>
+                  <Input
+                    id="amount"
+                    name="amount"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={newExpense.amount}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div>
+                  <label htmlFor="text" className="block text-sm font-medium mb-1 text-foreground">
+                    Description
+                  </label>
+                  <Input
+                    id="text"
+                    name="text"
+                    value={newExpense.text}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <Button type="submit">
+                  Add Expense
+                </Button>
+              </div>
+            </form>
           </div>
         )}
       </CardContent>

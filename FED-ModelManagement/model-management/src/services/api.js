@@ -397,6 +397,7 @@ export const modelsAPI = {
 
 // Expenses API
 export const expensesAPI = {
+  // Manager-only endpoint
   getAllExpenses: async () => {
     try {
       const response = await api.get('/Expenses');
@@ -406,6 +407,7 @@ export const expensesAPI = {
     }
   },
   
+  // Model endpoint for creating a new expense
   createExpense: async (expenseData) => {
     try {
       const response = await api.post('/Expenses', expenseData);
@@ -415,6 +417,7 @@ export const expensesAPI = {
     }
   },
   
+  // Both model and manager can get a specific expense
   getExpense: async (id) => {
     try {
       const response = await api.get(`/Expenses/${id}`);
@@ -424,6 +427,7 @@ export const expensesAPI = {
     }
   },
   
+  // Model endpoint for updating their expense
   updateExpense: async (id, expenseData) => {
     try {
       const response = await api.put(`/Expenses/${id}`, expenseData);
@@ -433,6 +437,7 @@ export const expensesAPI = {
     }
   },
   
+  // Model endpoint for deleting their expense
   deleteExpense: async (id) => {
     try {
       const response = await api.delete(`/Expenses/${id}`);
@@ -442,6 +447,7 @@ export const expensesAPI = {
     }
   },
   
+  // Both model and manager can get model expenses, but model can only get their own
   getModelExpenses: async (modelId) => {
     try {
       const response = await api.get(`/Expenses/model/${modelId}`);

@@ -32,7 +32,7 @@ export function AuthProvider({ children }) {
       firstName: decodedToken.firstName || decodedToken.given_name || '',
       lastName: decodedToken.lastName || decodedToken.family_name || '',
       name: decodedToken.name || '',
-      modelId: decodedToken.modelId || null
+      modelId: decodedToken.ModelId || decodedToken.modelId || null
     };
   };
 
@@ -299,7 +299,28 @@ export function AuthProvider({ children }) {
     getModelJobs: () => getModelJobs(currentUser?.modelId || modelData?.id),
     refreshModelData: () => loadModelData(currentUser?.modelId || currentUser?.email),
     // Add direct access to model ID with fallbacks
-    getModelId: () => currentUser?.modelId || modelData?.id || (currentUser?.role?.toLowerCase() === 'model' ? currentUser?.email : null)
+    getModelId: () => {
+      // First try to get the ID from the current user info
+      if (currentUser?.modelId) {
+        console.log('getModelId: Using ID from currentUser:', currentUser.modelId);
+        return currentUser.modelId;
+      }
+      
+      // Then try to get it from the model data
+      if (modelData?.id) {
+        console.log('getModelId: Using ID from modelData:', modelData.id);
+        return modelData.id;
+      }
+      
+      // For models without a numeric ID yet, use email as fallback
+      if (currentUser?.role?.toLowerCase() === 'model' && currentUser?.email) {
+        console.log('getModelId: Using email as fallback:', currentUser.email);
+        return currentUser.email;
+      }
+      
+      console.log('getModelId: No model ID found');
+      return null;
+    }
   };
 
   console.log('AuthContext value updated:', {
