@@ -39,6 +39,7 @@ function App() {
         
         {/* Routes that require manager role */}
         <Route element={<ProtectedRoute requireManager={true} />}>
+
           {/* Models routes */}
           <Route path="/models" element={<Models />} />
           <Route path="/models/:id" element={<Models />} />

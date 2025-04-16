@@ -64,18 +64,18 @@ export default function JobDetail({
         </div>
       </div>
       
-      <div className="bg-card border border-border p-4 rounded-md mb-4">
-        <h3 className="text-md font-semibold text-foreground mb-3">Assigned Models</h3>
-        
-        {selectedJob.models && selectedJob.models.length > 0 ? (
-          <ul className="divide-y divide-border">
-            {selectedJob.models.map(model => (
-              <li key={model.modelId || model.id} className="py-2 flex items-center justify-between">
-                <div>
-                  <span className="font-medium text-foreground">{model.firstName} {model.lastName}</span>
-                  <p className="text-sm text-muted-foreground">{model.email}</p>
-                </div>
-                {isManager && (
+      {isManager && (
+        <div className="bg-card border border-border p-4 rounded-md mb-4">
+          <h3 className="text-md font-semibold text-foreground mb-3">Assigned Models</h3>
+          
+          {selectedJob.models && selectedJob.models.length > 0 ? (
+            <ul className="divide-y divide-border">
+              {selectedJob.models.map(model => (
+                <li key={model.modelId || model.id} className="py-2 flex items-center justify-between">
+                  <div>
+                    <span className="font-medium text-foreground">{model.firstName} {model.lastName}</span>
+                    <p className="text-sm text-muted-foreground">{model.email}</p>
+                  </div>
                   <Button 
                     variant="destructive" 
                     size="sm"
@@ -83,15 +83,13 @@ export default function JobDetail({
                   >
                     Remove
                   </Button>
-                )}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-muted-foreground">No models are assigned to this job.</p>
-        )}
-        
-        {isManager && (
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-muted-foreground">No models are assigned to this job.</p>
+          )}
+          
           <div className="mt-4 pt-4 border-t border-border">
             <h4 className="text-sm font-semibold text-foreground mb-2">Add Model to Job</h4>
             <div className="flex space-x-2">
@@ -115,8 +113,8 @@ export default function JobDetail({
               </Button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
