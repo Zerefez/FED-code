@@ -1,0 +1,24 @@
+{
+  "appointments": [
+    {
+      "customerName": "Anders And",
+      "address": "Villavej 25\n8888 Andeby",
+      "carBrand": "Ford",
+      "carModel": "Kuga",
+      "licensePlate": "AL12345",
+      "date": "2024-07-01",
+      "taskDescription": "Årlig service + olieskift",
+      "id": 1
+    },
+    {
+      "customerName": "Andersine",
+      "address": "Bredgade 22\n8888 Andeby",
+      "carBrand": "Tesla",
+      "carModel": "Model Y",
+      "licensePlate": "BB45678",
+      "date": "2024-07-02",
+      "taskDescription": "Årlig service",
+      "id": 2
+    }
+  ]
+}
