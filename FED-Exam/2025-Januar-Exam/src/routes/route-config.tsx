@@ -1,6 +1,6 @@
-import { AuthLayout } from '@/components/auth-layout';
-import { LoginForm } from '@/components/login-form';
-import { RegisterForm } from '@/components/register-form';
+import { AuthLayout } from '@/components/auth/auth-layout';
+import { LoginForm } from '@/components/auth/login-form';
+import { RegisterForm } from '@/components/auth/register-form';
 import { Dashboard } from '@/pages/dashboard';
 import { HabitsPage } from '@/pages/habits-page';
 import { ProfilePage } from '@/pages/profile-page';

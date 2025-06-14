@@ -1,11 +1,11 @@
-import { AddHabitForm } from '@/components/add-habit-form';
-import { DeleteHabitDialog } from '@/components/delete-habit-dialog';
-import { EditHabitForm } from '@/components/edit-habit-form';
+import { ReasonSelector } from '@/components/common/reason-selector';
+import { AddHabitForm } from '@/components/habits/add-habit-form';
+import { DeleteHabitDialog } from '@/components/habits/delete-habit-dialog';
+import { EditHabitForm } from '@/components/habits/edit-habit-form';
 import { HabitFeedback } from '@/components/habits/habit-feedback';
 import { HabitHistory } from '@/components/habits/habit-history';
 import { HabitList } from '@/components/habits/habit-list';
 import { StatsCards } from '@/components/habits/stats-cards';
-import { ReasonSelector } from '@/components/reason-selector';
 import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
 import { useHabits } from '@/hooks/use-habits';

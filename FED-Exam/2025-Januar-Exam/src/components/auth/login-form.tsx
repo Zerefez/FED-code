@@ -137,7 +137,7 @@ export function LoginForm({
               
               <div className="flex flex-col gap-3">
                 <Button type="submit" className="w-full" disabled={isLoading} variant="success">
-                  {isLoading ? "Logger ind..." : "🔑 Log ind"}
+                  {isLoading ? "Logger ind..." : "Log ind"}
                 </Button>
               </div>
             </div>

@@ -1,4 +1,4 @@
-import { ThemeProvider } from '@/components/theme-provider'
+import { ThemeProvider } from '@/components/common/theme-provider'
 import { AuthProvider } from '@/hooks/use-auth'
 import { router } from '@/routes/route-config'
 import React from 'react'
