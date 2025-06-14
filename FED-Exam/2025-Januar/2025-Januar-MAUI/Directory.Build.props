@@ -1,0 +1,14 @@
+<Project>
+  <PropertyGroup>
+    <!-- Disable parallel builds for Android to avoid permission issues -->
+    <BuildInParallel Condition="'$(TargetFramework)' == 'net9.0-android'">false</BuildInParallel>
+    
+    <!-- Improve build performance -->
+    <UseSharedCompilation>true</UseSharedCompilation>
+    <ProduceOnlyReferenceAssembly>false</ProduceOnlyReferenceAssembly>
+    
+    <!-- Android specific settings -->
+    <AndroidUseSharedRuntime Condition="'$(Configuration)' == 'Debug' AND '$(TargetFramework)' == 'net9.0-android'">true</AndroidUseSharedRuntime>
+    <EmbedAssembliesIntoApk Condition="'$(Configuration)' == 'Debug' AND '$(TargetFramework)' == 'net9.0-android'">false</EmbedAssembliesIntoApk>
+  </PropertyGroup>
+</Project> 

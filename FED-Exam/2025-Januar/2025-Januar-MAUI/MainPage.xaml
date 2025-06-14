@@ -1,0 +1,230 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:JanuarMAUI.ViewModels"
+             xmlns:models="clr-namespace:JanuarMAUI.Models"
+             x:Class="JanuarMAUI.MainPage"
+             x:DataType="viewmodels:MainViewModel"
+             Title="{Binding Title}">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Frame Grid.Row="0" 
+               BackgroundColor="Black" 
+               CornerRadius="0"
+               Padding="20"
+               Margin="0">
+            <StackLayout Orientation="Horizontal">
+                <StackLayout VerticalOptions="Center" HorizontalOptions="FillAndExpand">
+                    <StackLayout Orientation="Horizontal" Spacing="10">
+                        <Label Text="🎯" FontSize="28" VerticalOptions="Center" />
+                        <Label Text="{Binding Title}" 
+                               FontSize="24" 
+                               FontAttributes="Bold" 
+                               TextColor="White"
+                               VerticalOptions="Center" />
+                    </StackLayout>
+                    <Label x:Name="TodayLabel"
+                           FontSize="12" 
+                           TextColor="White"
+                           Opacity="0.8"
+                           Margin="38,0,0,0" />
+                </StackLayout>
+                <Button Text="+ Tilføj vaner"
+                        Command="{Binding AddHabitCommand}"
+                        BackgroundColor="White"
+                        TextColor="Black"
+                        FontSize="14"
+                        FontAttributes="Bold"
+                        CornerRadius="20"
+                        HeightRequest="40"
+                        Padding="15,0"
+                        VerticalOptions="Center"
+                        HorizontalOptions="End" />
+            </StackLayout>
+        </Frame>
+
+        <!-- Content Area -->
+        <ScrollView Grid.Row="1" Padding="20">
+            <StackLayout>
+                
+                <!-- Empty State -->
+                <StackLayout IsVisible="{Binding HasHabits, Converter={StaticResource InvertedBoolConverter}}"
+                             VerticalOptions="CenterAndExpand"
+                             HorizontalOptions="Center"
+                             Spacing="20"
+                             Margin="0,50,0,0">
+                    <Label Text="🌱" 
+                           FontSize="64" 
+                           HorizontalOptions="Center" />
+                    <Label Text="Ingen vaner endnu"
+                           FontSize="20"
+                           FontAttributes="Bold"
+                           HorizontalOptions="Center"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                    <Label Text="Begynd at bygge gode vaner ved at tilføje din første vane"
+                           FontSize="16"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray400}}"
+                           Margin="40,0,40,0" />
+                    <Button Text="Tilføj din første vane"
+                            Command="{Binding AddHabitCommand}"
+                            BackgroundColor="Black"
+                            TextColor="White"
+                            FontSize="16"
+                            FontAttributes="Bold"
+                            CornerRadius="25"
+                            HeightRequest="50"
+                            WidthRequest="200" />
+                </StackLayout>
+
+                <!-- Habits List -->
+                <CollectionView ItemsSource="{Binding Habits}"
+                                IsVisible="{Binding HasHabits}"
+                                VerticalOptions="FillAndExpand">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:Habit">
+                            <Grid Padding="0,5,0,5">
+                                <Frame BackgroundColor="{AppThemeBinding Light=White, Dark=#2B2B2B}"
+                                       BorderColor="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"
+                                       CornerRadius="15"
+                                       Padding="20"
+                                       Margin="0,5,0,5">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Habit Name with Status -->
+                                        <StackLayout Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                                            <Label Text="{Binding Name}"
+                                                   FontSize="18"
+                                                   FontAttributes="Bold"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"
+                                                   VerticalOptions="Center" />
+                                            <!-- Completion status will be shown via button color -->
+                                        </StackLayout>
+
+                                        <!-- Menu Button -->
+                                        <Button Grid.Row="0" Grid.Column="1"
+                                                Text="⋯"
+                                                FontSize="18"
+                                                BackgroundColor="Transparent"
+                                                TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
+                                                WidthRequest="40"
+                                                HeightRequest="40"
+                                                CornerRadius="20"
+                                                Clicked="OnEditHabitClicked"
+                                                CommandParameter="{Binding}" />
+
+                                        <!-- Description -->
+                                        <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                               Text="{Binding Description}"
+                                               FontSize="14"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
+                                               Margin="0,5,0,10" />
+
+                                        <!-- Stats -->
+                                        <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,10">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackLayout Grid.Column="0" HorizontalOptions="Start">
+                                                <Label Text="Nuværende serie" 
+                                                       FontSize="12" 
+                                                       TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray400}}" />
+                                                <Label Text="{Binding CurrentStreak, StringFormat='{0} dage'}" 
+                                                       FontSize="16" 
+                                                       FontAttributes="Bold"
+                                                       TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" />
+                                            </StackLayout>
+
+                                            <StackLayout Grid.Column="1" HorizontalOptions="Center">
+                                                <Label Text="Bedste serie" 
+                                                       FontSize="12" 
+                                                       TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray400}}" />
+                                                <Label Text="{Binding LongestStreak, StringFormat='{0} dage'}" 
+                                                       FontSize="16" 
+                                                       FontAttributes="Bold"
+                                                       TextColor="#28A745" />
+                                            </StackLayout>
+
+                                            <StackLayout Grid.Column="2" HorizontalOptions="End">
+                                                <Label Text="Startdato" 
+                                                       FontSize="12" 
+                                                       TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray400}}" />
+                                                <Label Text="{Binding StartDate, StringFormat='{0:dd/MM/yyyy}'}" 
+                                                       FontSize="16" 
+                                                       FontAttributes="Bold"
+                                                       TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" />
+                                            </StackLayout>
+                                        </Grid>
+
+                                        <!-- Action Buttons -->
+                                        <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="10" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <Button Grid.Column="0"
+                                                    Text="Marker som udført"
+                                                    BackgroundColor="#28A745"
+                                                    TextColor="White"
+                                                    FontSize="14"
+                                                    FontAttributes="Bold"
+                                                    CornerRadius="20"
+                                                    HeightRequest="40"
+                                                    Clicked="OnToggleHabitClicked"
+                                                    CommandParameter="{Binding}" />
+
+                                            <Button Grid.Column="2"
+                                                    Text="🗑"
+                                                    BackgroundColor="#DC3545"
+                                                    TextColor="White"
+                                                    FontSize="16"
+                                                    CornerRadius="20"
+                                                    WidthRequest="40"
+                                                    HeightRequest="40"
+                                                    Clicked="OnDeleteHabitClicked"
+                                                    CommandParameter="{Binding}" />
+                                        </Grid>
+                                    </Grid>
+                                </Frame>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+            </StackLayout>
+    </ScrollView>
+
+        <!-- Loading Indicator -->
+        <ActivityIndicator Grid.Row="1" 
+                           IsVisible="{Binding IsBusy}" 
+                           IsRunning="{Binding IsBusy}"
+                           Color="Black"
+                           VerticalOptions="Center"
+                           HorizontalOptions="Center" />
+
+    </Grid>
+
+</ContentPage>

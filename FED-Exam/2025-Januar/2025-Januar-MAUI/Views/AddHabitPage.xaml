@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:JanuarMAUI.ViewModels"
+             x:Class="JanuarMAUI.Views.AddHabitPage"
+             x:DataType="viewmodels:AddHabitViewModel"
+             Title="{Binding Title}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="20">
+            
+            <Label Text="{Binding Title}" 
+                   FontSize="24" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Center" 
+                   Margin="0,0,0,20" />
+
+            <!-- Name Input -->
+            <Frame BackgroundColor="{AppThemeBinding Light=White, Dark=#2B2B2B}" 
+                   BorderColor="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"
+                   CornerRadius="10"
+                   Padding="0">
+                <VerticalStackLayout>
+                    <Label Text="Navn på vane" 
+                           FontSize="14" 
+                           TextColor="{AppThemeBinding Light=#666666, Dark=#CCCCCC}"
+                           Margin="15,10,15,0" />
+                    <Entry Text="{Binding Name}" 
+                           Placeholder="F.eks. Drikke vand"
+                           FontSize="16"
+                           Margin="15,0,15,15"
+                           BackgroundColor="Transparent" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Description Input -->
+            <Frame BackgroundColor="{AppThemeBinding Light=White, Dark=#2B2B2B}" 
+                   BorderColor="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"
+                   CornerRadius="10"
+                   Padding="0">
+                <VerticalStackLayout>
+                    <Label Text="Beskrivelse" 
+                           FontSize="14" 
+                           TextColor="{AppThemeBinding Light=#666666, Dark=#CCCCCC}"
+                           Margin="15,10,15,0" />
+                    <Editor Text="{Binding Description}" 
+                            Placeholder="Beskrivelse af vanen..."
+                            FontSize="16"
+                            AutoSize="TextChanges"
+                            MinimumHeightRequest="100"
+                            Margin="15,0,15,15"
+                            BackgroundColor="Transparent" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Start Date Input -->
+            <Frame BackgroundColor="{AppThemeBinding Light=White, Dark=#2B2B2B}" 
+                   BorderColor="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"
+                   CornerRadius="10"
+                   Padding="0">
+                <VerticalStackLayout>
+                    <Label Text="Start dato" 
+                           FontSize="14" 
+                           TextColor="{AppThemeBinding Light=#666666, Dark=#CCCCCC}"
+                           Margin="15,10,15,0" />
+                    <DatePicker Date="{Binding StartDate}" 
+                                FontSize="16"
+                                Margin="15,0,15,15"
+                                BackgroundColor="Transparent" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Save Button -->
+            <Button Text="{Binding SaveButtonText}"
+                    Command="{Binding SaveHabitCommand}"
+                    BackgroundColor="#000000"
+                    TextColor="White"
+                    FontSize="18"
+                    FontAttributes="Bold"
+                    CornerRadius="25"
+                    HeightRequest="50"
+                    Margin="0,20,0,0"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}" />
+
+            <!-- Cancel Button -->
+            <Button Text="Annuller"
+                    Command="{Binding CancelCommand}"
+                    BackgroundColor="Transparent"
+                    TextColor="{AppThemeBinding Light=#666666, Dark=#CCCCCC}"
+                    FontSize="16"
+                    BorderColor="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"
+                    BorderWidth="1"
+                    CornerRadius="25"
+                    HeightRequest="50"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}" />
+
+            <!-- Loading Indicator -->
+            <ActivityIndicator IsVisible="{Binding IsBusy}" 
+                               IsRunning="{Binding IsBusy}"
+                               Color="#000000"
+                               Margin="0,20,0,0" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage> 

@@ -1,0 +1,26 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": ".NET MAUI (Windows)",
+      "type": "node",
+      "request": "launch",
+      "preLaunchTask": "run-maui",
+      "program": "${workspaceFolder}/dummy.js",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": ".NET MAUI (Android)",
+      "type": "dotnet",
+      "request": "launch",
+      "projectPath": "${workspaceFolder}/2025-Januar-MAUI.csproj",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "env": {
+        "DOTNET_MODIFIABLE_ASSEMBLIES": "debug"
+      }
+    }
+  ]
+}

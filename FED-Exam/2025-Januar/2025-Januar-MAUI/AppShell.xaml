@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="JanuarMAUI.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:JanuarMAUI"
+    xmlns:views="clr-namespace:JanuarMAUI.Views"
+    Title="Habit Tracker"
+    FlyoutBehavior="Disabled">
+
+    <!-- Navigation Bar Tabs -->
+    <TabBar>
+        <ShellContent
+            Title="Mine Vaner"
+            ContentTemplate="{DataTemplate local:MainPage}"
+            Route="MainPage" />
+            
+        <ShellContent
+            Title="Statistik"
+            ContentTemplate="{DataTemplate views:StatisticsPage}"
+            Route="StatisticsPage" />
+            
+        <ShellContent
+            Title="Indstillinger"
+            ContentTemplate="{DataTemplate views:SettingsPage}"
+            Route="SettingsPage" />
+    </TabBar>
+
+</Shell>
