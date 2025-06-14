@@ -1,9 +1,9 @@
 import { AuthLayout } from '@/components/auth-layout';
-import { Dashboard } from '@/components/dashboard';
-import { HabitsPage } from '@/components/habits-page';
 import { LoginForm } from '@/components/login-form';
-import { ProfilePage } from '@/components/profile-page';
 import { RegisterForm } from '@/components/register-form';
+import { Dashboard } from '@/pages/dashboard';
+import { HabitsPage } from '@/pages/habits-page';
+import { ProfilePage } from '@/pages/profile-page';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { ProtectedRoutes } from './protected-routes';
 

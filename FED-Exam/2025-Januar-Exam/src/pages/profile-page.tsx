@@ -2,32 +2,19 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAuth } from '@/hooks/use-auth';
-import { useState } from 'react';
+import { useProfile } from '@/hooks/use-profile';
 
 export function ProfilePage() {
-  const { user } = useAuth();
-  const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState({
-    firstName: user?.firstName || '',
-    lastName: user?.lastName || '',
-    email: user?.email || '',
-  });
-
-  const handleSave = () => {
-    // TODO: Implement profile update functionality
-    console.log('Saving profile:', editData);
-    setIsEditing(false);
-  };
-
-  const handleCancel = () => {
-    setEditData({
-      firstName: user?.firstName || '',
-      lastName: user?.lastName || '',
-      email: user?.email || '',
-    });
-    setIsEditing(false);
-  };
+  const {
+    isEditing,
+    setIsEditing,
+    formData,
+    errors,
+    isLoading,
+    handleInputChange,
+    handleSave,
+    handleCancel
+  } = useProfile();
 
   return (
     <div className="space-y-6">
@@ -47,24 +34,38 @@ export function ProfilePage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {errors.general && (
+              <div className="p-3 text-red-700 bg-red-100 border border-red-300 rounded-md">
+                {errors.general}
+              </div>
+            )}
+            
             <div className="grid gap-2">
               <Label htmlFor="firstName">Fornavn</Label>
               <Input
                 id="firstName"
-                value={isEditing ? editData.firstName : user?.firstName || ''}
-                onChange={(e) => setEditData(prev => ({ ...prev, firstName: e.target.value }))}
+                value={formData.firstName}
+                onChange={(e) => handleInputChange('firstName', e.target.value)}
                 disabled={!isEditing}
+                className={errors.firstName ? "border-red-500" : ""}
               />
+              {errors.firstName && (
+                <p className="text-sm text-red-500">{errors.firstName}</p>
+              )}
             </div>
             
             <div className="grid gap-2">
               <Label htmlFor="lastName">Efternavn</Label>
               <Input
                 id="lastName"
-                value={isEditing ? editData.lastName : user?.lastName || ''}
-                onChange={(e) => setEditData(prev => ({ ...prev, lastName: e.target.value }))}
+                value={formData.lastName}
+                onChange={(e) => handleInputChange('lastName', e.target.value)}
                 disabled={!isEditing}
+                className={errors.lastName ? "border-red-500" : ""}
               />
+              {errors.lastName && (
+                <p className="text-sm text-red-500">{errors.lastName}</p>
+              )}
             </div>
             
             <div className="grid gap-2">
@@ -72,10 +73,14 @@ export function ProfilePage() {
               <Input
                 id="email"
                 type="email"
-                value={isEditing ? editData.email : user?.email || ''}
-                onChange={(e) => setEditData(prev => ({ ...prev, email: e.target.value }))}
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
                 disabled={!isEditing}
+                className={errors.email ? "border-red-500" : ""}
               />
+              {errors.email && (
+                <p className="text-sm text-red-500">{errors.email}</p>
+              )}
             </div>
 
             <div className="flex gap-2 pt-4">
@@ -85,10 +90,10 @@ export function ProfilePage() {
                 </Button>
               ) : (
                 <>
-                  <Button onClick={handleSave}>
-                    Gem Ændringer
+                  <Button onClick={handleSave} disabled={isLoading}>
+                    {isLoading ? "Gemmer..." : "Gem Ændringer"}
                   </Button>
-                  <Button variant="outline" onClick={handleCancel}>
+                  <Button variant="outline" onClick={handleCancel} disabled={isLoading}>
                     Annuller
                   </Button>
                 </>

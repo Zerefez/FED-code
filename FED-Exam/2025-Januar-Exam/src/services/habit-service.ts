@@ -35,7 +35,7 @@ export class HabitService {
   // Create a new habit
   static async create(habitData: CreateHabitData): Promise<Habit> {
     try {
-      return await apiClient.post<Habit>(this.ENDPOINT, habitData);
+      return await apiClient.post<Habit>(HabitService.ENDPOINT, habitData);
     } catch (error) {
       console.error('Error creating habit:', error);
       throw error;
@@ -45,7 +45,7 @@ export class HabitService {
   // Get all habits
   static async getAll(): Promise<Habit[]> {
     try {
-      return await apiClient.get<Habit[]>(this.ENDPOINT);
+      return await apiClient.get<Habit[]>(HabitService.ENDPOINT);
     } catch (error) {
       console.error('Error fetching habits:', error);
       throw error;
@@ -55,7 +55,7 @@ export class HabitService {
   // Get habit by ID
   static async getById(id: string): Promise<Habit> {
     try {
-      return await apiClient.get<Habit>(`${this.ENDPOINT}/${id}`);
+      return await apiClient.get<Habit>(`${HabitService.ENDPOINT}/${id}`);
     } catch (error) {
       console.error('Error fetching habit:', error);
       throw error;
@@ -65,7 +65,7 @@ export class HabitService {
   // Get habits by user ID
   static async getByUserId(userId: string): Promise<Habit[]> {
     try {
-      return await apiClient.get<Habit[]>(this.ENDPOINT, { userId });
+      return await apiClient.get<Habit[]>(HabitService.ENDPOINT, { userId });
     } catch (error) {
       console.error('Error fetching habits by user:', error);
       throw error;
@@ -75,7 +75,7 @@ export class HabitService {
   // Update habit
   static async update(id: string, habitData: UpdateHabitData): Promise<Habit> {
     try {
-      return await apiClient.patch<Habit>(`${this.ENDPOINT}/${id}`, habitData);
+      return await apiClient.patch<Habit>(`${HabitService.ENDPOINT}/${id}`, habitData);
     } catch (error) {
       console.error('Error updating habit:', error);
       throw error;
@@ -85,7 +85,7 @@ export class HabitService {
   // Delete habit
   static async delete(id: string): Promise<void> {
     try {
-      await apiClient.delete(`${this.ENDPOINT}/${id}`);
+      await apiClient.delete(`${HabitService.ENDPOINT}/${id}`);
     } catch (error) {
       console.error('Error deleting habit:', error);
       throw error;
@@ -95,7 +95,7 @@ export class HabitService {
   // Search habits by name
   static async searchByName(name: string): Promise<Habit[]> {
     try {
-      return await apiClient.get<Habit[]>(this.ENDPOINT, { name_like: name });
+      return await apiClient.get<Habit[]>(HabitService.ENDPOINT, { name_like: name });
     } catch (error) {
       console.error('Error searching habits:', error);
       throw error;

@@ -37,6 +37,22 @@ export const HABIT_NOT_COMPLETED_REASONS = [
 
 export type HabitNotCompletedReason = typeof HABIT_NOT_COMPLETED_REASONS[number]['value'];
 
+// Helper function to get current Denmark time as ISO string
+function getDenmarkTimeISO(): string {
+  const now = new Date();
+  // Get current time in Denmark timezone
+  const denmarkTime = new Date(now.toLocaleString("en-US", {timeZone: "Europe/Copenhagen"}));
+  return denmarkTime.toISOString();
+}
+
+// Helper function to format date for comparison (Denmark timezone)
+function formatDateForComparison(date: string): string {
+  const dateObj = new Date(date);
+  return dateObj.toLocaleDateString('sv-SE', {
+    timeZone: 'Europe/Copenhagen'
+  });
+}
+
 // Habit entry service class with all habit-entry-related operations
 export class HabitEntryService {
   private static readonly ENDPOINT = '/HabitEntries';
@@ -117,15 +133,15 @@ export class HabitEntryService {
   // Get habit entries by habit ID and date
   static async getByHabitIdAndDate(habitId: string, date: string): Promise<HabitEntry[]> {
     try {
-      // Extract just the date part for comparison (YYYY-MM-DD)
-      const targetDate = new Date(date).toISOString().split('T')[0];
+      // Extract just the date part for comparison (Denmark timezone)
+      const targetDate = formatDateForComparison(date);
       
       // Get all entries for this habit
       const habitEntries = await apiClient.get<HabitEntry[]>(HabitEntryService.ENDPOINT, { habitId });
       
-      // Filter by date
+      // Filter by date using Denmark timezone
       const matchingEntries = habitEntries.filter(entry => {
-        const entryDate = new Date(entry.date).toISOString().split('T')[0];
+        const entryDate = formatDateForComparison(entry.date);
         return entryDate === targetDate;
       });
       
@@ -157,7 +173,7 @@ export class HabitEntryService {
   }
 
   // Remove/undo habit entry for a specific date - completely deletes the entry
-  static async undoHabitEntry(habitId: string, date: string = new Date().toISOString()): Promise<void> {
+  static async undoHabitEntry(habitId: string, date: string = getDenmarkTimeISO()): Promise<void> {
     try {
       // Find existing entries for this habit and date
       const existingEntries = await HabitEntryService.getByHabitIdAndDate(habitId, date);
@@ -173,7 +189,7 @@ export class HabitEntryService {
   }
 
   // Mark habit as completed for a specific date
-  static async markCompleted(habitId: string, date: string = new Date().toISOString()): Promise<HabitEntry> {
+  static async markCompleted(habitId: string, date: string = getDenmarkTimeISO()): Promise<HabitEntry> {
     try {
       // Check if entry already exists for this habit and date
       const existingEntries = await HabitEntryService.getByHabitIdAndDate(habitId, date);
@@ -196,7 +212,7 @@ export class HabitEntryService {
   }
 
   // Mark habit as incomplete for a specific date with optional reason
-  static async markIncomplete(habitId: string, date: string = new Date().toISOString(), reason?: string): Promise<HabitEntry> {
+  static async markIncomplete(habitId: string, date: string = getDenmarkTimeISO(), reason?: string): Promise<HabitEntry> {
     try {
       // Check if entry already exists for this habit and date
       const existingEntries = await HabitEntryService.getByHabitIdAndDate(habitId, date);
@@ -205,12 +221,17 @@ export class HabitEntryService {
         // Update the most recent existing entry
         const latestEntry = existingEntries[existingEntries.length - 1];
         return await HabitEntryService.update(latestEntry.id, { 
-          completed: false, 
-          reason 
+          completed: false,
+          reason: reason || undefined 
         });
       } else {
         // Create new entry
-        return await HabitEntryService.create({ habitId, date, completed: false, reason });
+        return await HabitEntryService.create({ 
+          habitId, 
+          date, 
+          completed: false,
+          reason: reason || undefined 
+        });
       }
     } catch (error) {
       console.error('Error marking habit as incomplete:', error);

@@ -98,6 +98,19 @@
       "date": "2025-01-13T13:06:43.365Z",
       "habitId": "2c6d",
       "completed": true
+    },
+    {
+      "habitId": "2",
+      "date": "2025-06-14T12:50:10.073Z",
+      "completed": false,
+      "reason": "glemte-det",
+      "id": "Fermnqg"
+    },
+    {
+      "habitId": "1",
+      "date": "2025-06-14T12:52:54.232Z",
+      "completed": true,
+      "id": "0lmHiFw"
     }
   ]
 }

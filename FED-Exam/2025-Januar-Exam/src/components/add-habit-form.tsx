@@ -9,60 +9,51 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuth } from "@/hooks/use-auth"
+import { useForm, ValidationRules } from "@/hooks/use-form"
+import { getTodayString } from "@/lib/date-utils"
+import { FREQUENCY_OPTIONS } from "@/lib/frequency-utils"
 import { CreateHabitData, HabitService } from "@/services/habit-service"
-import React, { useState } from "react"
+import React from "react"
 
 interface AddHabitFormProps {
   onHabitAdded: () => void
   onCancel: () => void
 }
 
+interface HabitFormData {
+  name: string;
+  description: string;
+  startDate: string;
+  frequency: string;
+}
+
 export function AddHabitForm({ onHabitAdded, onCancel }: AddHabitFormProps) {
   const { user } = useAuth()
-  const [formData, setFormData] = useState({
+  
+  const initialData: HabitFormData = {
     name: "",
     description: "",
-    startDate: new Date().toISOString().split('T')[0], // Today's date as default
-  })
-  const [errors, setErrors] = useState<{ [key: string]: string }>({})
-  const [isLoading, setIsLoading] = useState(false)
-
-  const validateForm = (): boolean => {
-    const newErrors: { [key: string]: string } = {}
-
-    // Validate name
-    if (!formData.name.trim()) {
-      newErrors.name = "Navn er påkrævet"
-    }
-
-    // Validate description
-    if (!formData.description.trim()) {
-      newErrors.description = "Beskrivelse er påkrævet"
-    }
-
-    // Validate start date
-    if (!formData.startDate) {
-      newErrors.startDate = "Startdato er påkrævet"
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    startDate: getTodayString(),
+    frequency: "daily" // Default to daily
   }
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }))
-    
-    // Clear error for this field when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({
-        ...prev,
-        [field]: ""
-      }))
-    }
+  const validationRules: ValidationRules<HabitFormData> = {
+    name: (value) => !value.trim() ? "Navn er påkrævet" : undefined,
+    description: (value) => !value.trim() ? "Beskrivelse er påkrævet" : undefined,
+    startDate: (value) => !value ? "Startdato er påkrævet" : undefined,
+    frequency: (value) => !value ? "Frekvens er påkrævet" : undefined,
   }
+
+  const {
+    formData,
+    errors,
+    isLoading,
+    setIsLoading,
+    setErrors,
+    handleInputChange,
+    validateForm,
+    resetForm
+  } = useForm(initialData)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -75,7 +66,7 @@ export function AddHabitForm({ onHabitAdded, onCancel }: AddHabitFormProps) {
     setIsLoading(true)
     
     try {
-      const isValid = validateForm()
+      const isValid = validateForm(validationRules)
       
       if (!isValid) {
         setIsLoading(false)
@@ -86,18 +77,14 @@ export function AddHabitForm({ onHabitAdded, onCancel }: AddHabitFormProps) {
         name: formData.name.trim(),
         description: formData.description.trim(),
         startDate: formData.startDate,
-        frequency: "daily", // Set to daily as mentioned in requirements
+        frequency: formData.frequency,
         userId: user.id
       }
 
       await HabitService.create(habitData)
       
       // Reset form
-      setFormData({
-        name: "",
-        description: "",
-        startDate: new Date().toISOString().split('T')[0],
-      })
+      resetForm()
       
       // Call the callback to refresh the habits list and close the form
       onHabitAdded()
@@ -115,7 +102,7 @@ export function AddHabitForm({ onHabitAdded, onCancel }: AddHabitFormProps) {
       <CardHeader>
         <CardTitle>Tilføj ny vane</CardTitle>
         <CardDescription>
-          Opret en ny vane som du vil spore dagligt
+          Opret en ny vane med dit ønskede interval
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -156,6 +143,29 @@ export function AddHabitForm({ onHabitAdded, onCancel }: AddHabitFormProps) {
               />
               {errors.description && (
                 <p className="text-sm text-red-500">{errors.description}</p>
+              )}
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="frequency">Hvor ofte vil du udføre denne vane?</Label>
+              <select
+                id="frequency"
+                value={formData.frequency}
+                onChange={(e) => handleInputChange("frequency", e.target.value)}
+                className={`w-full px-3 py-2 border border-input bg-background rounded-md text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+                  errors.frequency ? "border-red-500" : ""
+                }`}
+                required
+              >
+                <option value="">Vælg frekvens</option>
+                {FREQUENCY_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label} - {option.description}
+                  </option>
+                ))}
+              </select>
+              {errors.frequency && (
+                <p className="text-sm text-red-500">{errors.frequency}</p>
               )}
             </div>
 
