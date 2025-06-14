@@ -103,6 +103,7 @@
                                             <RowDefinition Height="Auto" />
                                             <RowDefinition Height="Auto" />
                                             <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
                                         </Grid.RowDefinitions>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
@@ -116,7 +117,23 @@
                                                    FontAttributes="Bold"
                                                    TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"
                                                    VerticalOptions="Center" />
-                                            <!-- Completion status will be shown via button color -->
+                                            
+                                            <!-- Completion status indicator -->
+                                            <Label Text="✅" 
+                                                   FontSize="16"
+                                                   IsVisible="{Binding IsCompletedToday}"
+                                                   VerticalOptions="Center" />
+                                            
+                                            <Label Text="❌" 
+                                                   FontSize="16"
+                                                   IsVisible="{Binding IsMarkedToday}"
+                                                   VerticalOptions="Center">
+                                                <Label.Triggers>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding IsCompletedToday}" Value="True">
+                                                        <Setter Property="IsVisible" Value="False" />
+                                                    </DataTrigger>
+                                                </Label.Triggers>
+                                            </Label>
                                         </StackLayout>
 
                                         <!-- Menu Button -->
@@ -136,10 +153,26 @@
                                                Text="{Binding Description}"
                                                FontSize="14"
                                                TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
-                                               Margin="0,5,0,10" />
+                                               Margin="0,5,0,5" />
+
+                                        <!-- Reason for not completing (if applicable) -->
+                                        <StackLayout Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" 
+                                                     Orientation="Horizontal" 
+                                                     Spacing="5"
+                                                     Margin="0,0,0,10"
+                                                     IsVisible="{Binding TodayReason, Converter={StaticResource StringToVisibilityConverter}}">
+                                            
+                                            <Label Text="Årsag:" 
+                                                   FontSize="12" 
+                                                   FontAttributes="Bold"
+                                                   TextColor="#DC3545" />
+                                            <Label Text="{Binding TodayReason}" 
+                                                   FontSize="12" 
+                                                   TextColor="#DC3545" />
+                                        </StackLayout>
 
                                         <!-- Stats -->
-                                        <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,10">
+                                        <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,10">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="*" />
@@ -178,13 +211,16 @@
                                         </Grid>
 
                                         <!-- Action Buttons -->
-                                        <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2">
+                                        <Grid Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2">
                                             <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="10" />
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="10" />
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
 
+                                            <!-- Show two buttons when not marked today -->
                                             <Button Grid.Column="0"
                                                     Text="Marker som udført"
                                                     BackgroundColor="#28A745"
@@ -193,10 +229,37 @@
                                                     FontAttributes="Bold"
                                                     CornerRadius="20"
                                                     HeightRequest="40"
-                                                    Clicked="OnToggleHabitClicked"
+                                                    IsVisible="{Binding IsMarkedToday, Converter={StaticResource InvertedBoolConverter}}"
+                                                    Clicked="OnMarkCompletedClicked"
                                                     CommandParameter="{Binding}" />
 
                                             <Button Grid.Column="2"
+                                                    Text="Ikke gennemført"
+                                                    BackgroundColor="#FFC107"
+                                                    TextColor="Black"
+                                                    FontSize="14"
+                                                    FontAttributes="Bold"
+                                                    CornerRadius="20"
+                                                    HeightRequest="40"
+                                                    IsVisible="{Binding IsMarkedToday, Converter={StaticResource InvertedBoolConverter}}"
+                                                    Clicked="OnMarkNotCompletedClicked"
+                                                    CommandParameter="{Binding}" />
+
+                                            <!-- Show undo button when marked today -->
+                                            <Button Grid.Column="0" Grid.ColumnSpan="3"
+                                                    Text="Fortryd"
+                                                    BackgroundColor="#6C757D"
+                                                    TextColor="White"
+                                                    FontSize="14"
+                                                    FontAttributes="Bold"
+                                                    CornerRadius="20"
+                                                    HeightRequest="40"
+                                                    IsVisible="{Binding IsMarkedToday}"
+                                                    Clicked="OnUndoMarkingClicked"
+                                                    CommandParameter="{Binding}" />
+
+                                            <!-- Delete button -->
+                                            <Button Grid.Column="4"
                                                     Text="🗑"
                                                     BackgroundColor="#DC3545"
                                                     TextColor="White"

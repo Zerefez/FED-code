@@ -65,10 +65,15 @@ public partial class MainViewModel : BaseViewModel
                 var habit = Habits[i];
                 try
                 {
-                    habit.IsCompletedToday = await _habitService.IsHabitCompletedOnDateAsync(habit.HabitId, today);
+                    var todayEntries = await _habitService.GetHabitEntriesAsync(habit.HabitId, today, today);
+                    var entry = todayEntries.FirstOrDefault();
+                    
+                    habit.IsCompletedToday = entry?.Completed ?? false;
+                    habit.IsMarkedToday = entry != null;
+                    habit.TodayReason = entry?.Reason;
                     habit.CurrentStreak = await _habitService.GetCurrentStreakAsync(habit.HabitId);
                     habit.LongestStreak = await _habitService.GetLongestStreakAsync(habit.HabitId);
-                    System.Diagnostics.Debug.WriteLine($"MainViewModel: Updated stats for habit: {habit.Name}");
+                    System.Diagnostics.Debug.WriteLine($"MainViewModel: Updated stats for habit: {habit.Name} - IsMarkedToday: {habit.IsMarkedToday}, IsCompletedToday: {habit.IsCompletedToday}, Reason: '{habit.TodayReason}'");
                 }
                 catch (Exception habitEx)
                 {
@@ -144,32 +149,74 @@ public partial class MainViewModel : BaseViewModel
     }
 
     [RelayCommand]
-    public async Task ToggleHabitCompletionAsync(Habit habit)
+    public async Task MarkHabitCompletedAsync(Habit habit)
     {
         if (habit == null) return;
 
         try
         {
             var today = DateTime.Today;
-            var isCompleted = await _habitService.IsHabitCompletedOnDateAsync(habit.HabitId, today);
+            await _habitService.MarkHabitCompletedAsync(habit.HabitId, today);
+            await Shell.Current.DisplayAlert("Godt klaret!", $"'{habit.Name}' er markeret som udført i dag! 🎉", "OK");
 
-            if (isCompleted)
-            {
-                await _habitService.MarkHabitNotCompletedAsync(habit.HabitId, today);
-                await Shell.Current.DisplayAlert("Vane opdateret", $"'{habit.Name}' er markeret som ikke udført i dag.", "OK");
-            }
-            else
-            {
-                await _habitService.MarkHabitCompletedAsync(habit.HabitId, today);
-                await Shell.Current.DisplayAlert("Godt klaret!", $"'{habit.Name}' er markeret som udført i dag! 🎉", "OK");
-            }
-
-            // Refresh the habit to show updated streaks
+            // Refresh the habit to show updated status
             await LoadHabitsAsync();
         }
         catch (Exception ex)
         {
-            await Shell.Current.DisplayAlert("Fejl", $"Kunne ikke opdatere vane: {ex.Message}", "OK");
+            await Shell.Current.DisplayAlert("Fejl", $"Kunne ikke markere vane som udført: {ex.Message}", "OK");
+        }
+    }
+
+    [RelayCommand]
+    public async Task MarkHabitNotCompletedAsync(Habit habit)
+    {
+        if (habit == null) return;
+
+        try
+        {
+            var today = DateTime.Today;
+            
+            // Show reason selection
+            var reasons = new[] { "Syg", "På ferie", "Havde ikke tid", "Gad ikke", "Glemte det", "Andet" };
+            var selectedReason = await Shell.Current.DisplayActionSheet(
+                "Hvorfor blev vanen ikke gennemført?", 
+                "Annuller", 
+                null, 
+                reasons);
+
+            if (selectedReason != "Annuller" && !string.IsNullOrEmpty(selectedReason))
+            {
+                await _habitService.MarkHabitNotCompletedAsync(habit.HabitId, today, selectedReason);
+                await Shell.Current.DisplayAlert("Vane opdateret", $"'{habit.Name}' er markeret som ikke gennemført.", "OK");
+
+                // Refresh the habit to show updated status
+                await LoadHabitsAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlert("Fejl", $"Kunne ikke markere vane som ikke gennemført: {ex.Message}", "OK");
+        }
+    }
+
+    [RelayCommand]
+    public async Task UndoHabitMarkingAsync(Habit habit)
+    {
+        if (habit == null) return;
+
+        try
+        {
+            var today = DateTime.Today;
+            await _habitService.UndoHabitMarkingAsync(habit.HabitId, today);
+            await Shell.Current.DisplayAlert("Fortryd", $"Markeringen for '{habit.Name}' er fortrudt.", "OK");
+
+            // Refresh the habit to show updated status
+            await LoadHabitsAsync();
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlert("Fejl", $"Kunne ikke fortryde markering: {ex.Message}", "OK");
         }
     }
 

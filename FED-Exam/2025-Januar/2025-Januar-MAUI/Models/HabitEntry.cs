@@ -16,6 +16,8 @@ public class HabitEntry
     
     public bool Completed { get; set; }
     
+    public string? Reason { get; set; }
+    
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     
     public DateTime UpdatedAt { get; set; } = DateTime.Now;

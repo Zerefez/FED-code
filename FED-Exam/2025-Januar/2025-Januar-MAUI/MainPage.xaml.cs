@@ -51,11 +51,27 @@ public partial class MainPage : ContentPage
         }
     }
 
-    private async void OnToggleHabitClicked(object sender, EventArgs e)
+    private async void OnMarkCompletedClicked(object sender, EventArgs e)
     {
         if (sender is Button button && button.CommandParameter is Habit habit && BindingContext is MainViewModel viewModel)
         {
-            await viewModel.ToggleHabitCompletionCommand.ExecuteAsync(habit);
+            await viewModel.MarkHabitCompletedCommand.ExecuteAsync(habit);
+        }
+    }
+
+    private async void OnMarkNotCompletedClicked(object sender, EventArgs e)
+    {
+        if (sender is Button button && button.CommandParameter is Habit habit && BindingContext is MainViewModel viewModel)
+        {
+            await viewModel.MarkHabitNotCompletedCommand.ExecuteAsync(habit);
+        }
+    }
+
+    private async void OnUndoMarkingClicked(object sender, EventArgs e)
+    {
+        if (sender is Button button && button.CommandParameter is Habit habit && BindingContext is MainViewModel viewModel)
+        {
+            await viewModel.UndoHabitMarkingCommand.ExecuteAsync(habit);
         }
     }
 

@@ -31,9 +31,11 @@ public class HabitEntryRepository : IHabitEntryRepository
     {
         var database = await _databaseService.GetConnectionAsync();
         var dateOnly = date.Date;
-        return await database.Table<HabitEntry>()
-            .Where(he => he.HabitId == habitId && he.Date.Date == dateOnly)
-            .FirstOrDefaultAsync();
+        var entries = await database.Table<HabitEntry>()
+            .Where(he => he.HabitId == habitId)
+            .ToListAsync();
+        
+        return entries.FirstOrDefault(he => he.Date.Date == dateOnly);
     }
 
     public async Task<long> CreateAsync(HabitEntry habitEntry)
@@ -66,11 +68,13 @@ public class HabitEntryRepository : IHabitEntryRepository
         var startDateOnly = startDate.Date;
         var endDateOnly = endDate.Date;
         
-        return await database.Table<HabitEntry>()
-            .Where(he => he.HabitId == habitId && 
-                        he.Date.Date >= startDateOnly && 
-                        he.Date.Date <= endDateOnly)
-            .OrderBy(he => he.Date)
+        var entries = await database.Table<HabitEntry>()
+            .Where(he => he.HabitId == habitId)
             .ToListAsync();
+        
+        return entries
+            .Where(he => he.Date.Date >= startDateOnly && he.Date.Date <= endDateOnly)
+            .OrderBy(he => he.Date)
+            .ToList();
     }
 } 

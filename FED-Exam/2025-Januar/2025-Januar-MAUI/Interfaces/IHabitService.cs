@@ -10,7 +10,8 @@ public interface IHabitService
     Task<bool> UpdateHabitAsync(Habit habit);
     Task<bool> DeleteHabitAsync(long id);
     Task<bool> MarkHabitCompletedAsync(long habitId, DateTime date);
-    Task<bool> MarkHabitNotCompletedAsync(long habitId, DateTime date);
+    Task<bool> MarkHabitNotCompletedAsync(long habitId, DateTime date, string? reason = null);
+    Task<bool> UndoHabitMarkingAsync(long habitId, DateTime date);
     Task<long> GetCurrentStreakAsync(long habitId);
     Task<long> GetLongestStreakAsync(long habitId);
     Task<List<HabitEntry>> GetHabitEntriesAsync(long habitId, DateTime startDate, DateTime endDate);

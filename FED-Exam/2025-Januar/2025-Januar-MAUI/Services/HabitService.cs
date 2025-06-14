@@ -72,6 +72,7 @@ public class HabitService : IHabitService
         if (existingEntry != null)
         {
             existingEntry.Completed = true;
+            existingEntry.Reason = null; // Clear any previous reason
             await _habitEntryRepository.UpdateAsync(existingEntry);
         }
         else
@@ -80,7 +81,8 @@ public class HabitService : IHabitService
             {
                 HabitId = habitId,
                 Date = date.Date,
-                Completed = true
+                Completed = true,
+                Reason = null
             };
             await _habitEntryRepository.CreateAsync(habitEntry);
         }
@@ -89,13 +91,14 @@ public class HabitService : IHabitService
         return true;
     }
 
-    public async Task<bool> MarkHabitNotCompletedAsync(long habitId, DateTime date)
+    public async Task<bool> MarkHabitNotCompletedAsync(long habitId, DateTime date, string? reason = null)
     {
         var existingEntry = await _habitEntryRepository.GetByHabitIdAndDateAsync(habitId, date);
         
         if (existingEntry != null)
         {
             existingEntry.Completed = false;
+            existingEntry.Reason = reason;
             await _habitEntryRepository.UpdateAsync(existingEntry);
         }
         else
@@ -104,13 +107,28 @@ public class HabitService : IHabitService
             {
                 HabitId = habitId,
                 Date = date.Date,
-                Completed = false
+                Completed = false,
+                Reason = reason
             };
             await _habitEntryRepository.CreateAsync(habitEntry);
         }
 
         await UpdateStreaksAsync(habitId);
         return true;
+    }
+
+    public async Task<bool> UndoHabitMarkingAsync(long habitId, DateTime date)
+    {
+        var existingEntry = await _habitEntryRepository.GetByHabitIdAndDateAsync(habitId, date);
+        
+        if (existingEntry != null)
+        {
+            await _habitEntryRepository.DeleteAsync(existingEntry.HabitEntryId);
+            await UpdateStreaksAsync(habitId);
+            return true;
+        }
+        
+        return false;
     }
 
     public async Task<long> GetCurrentStreakAsync(long habitId)
@@ -155,7 +173,7 @@ public class HabitService : IHabitService
 
         while (true)
         {
-            var entry = completedEntries.FirstOrDefault(e => e.Date.Date == checkDate);
+            var entry = completedEntries.FirstOrDefault(e => e.Date.Date == checkDate.Date);
             if (entry == null || !entry.Completed)
                 break;
 
