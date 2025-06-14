@@ -17,6 +17,8 @@ public partial class StatisticsPage : ContentPage
         if (BindingContext is StatisticsViewModel viewModel)
         {
             await viewModel.LoadStatisticsAsync();
+            await viewModel.LoadCalendarAsync();
+            await viewModel.LoadHabitStatisticsAsync();
         }
     }
 } 

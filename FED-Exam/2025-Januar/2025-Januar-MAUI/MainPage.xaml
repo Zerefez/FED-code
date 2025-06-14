@@ -183,20 +183,26 @@
                                                 <Label Text="Nuværende serie" 
                                                        FontSize="12" 
                                                        TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray400}}" />
-                                                <Label Text="{Binding CurrentStreak, StringFormat='{0} dage'}" 
-                                                       FontSize="16" 
-                                                       FontAttributes="Bold"
-                                                       TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" />
+                                                <StackLayout Orientation="Horizontal" Spacing="5">
+                                                    <Label Text="🔥" FontSize="14" VerticalOptions="Center" />
+                                                    <Label Text="{Binding CurrentStreak, StringFormat='{0} dage'}" 
+                                                           FontSize="16" 
+                                                           FontAttributes="Bold"
+                                                           TextColor="#28A745" />
+                                                </StackLayout>
                                             </StackLayout>
 
                                             <StackLayout Grid.Column="1" HorizontalOptions="Center">
                                                 <Label Text="Bedste serie" 
                                                        FontSize="12" 
                                                        TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray400}}" />
-                                                <Label Text="{Binding LongestStreak, StringFormat='{0} dage'}" 
-                                                       FontSize="16" 
-                                                       FontAttributes="Bold"
-                                                       TextColor="#28A745" />
+                                                <StackLayout Orientation="Horizontal" HorizontalOptions="Center" Spacing="5">
+                                                    <Label Text="🏆" FontSize="14" VerticalOptions="Center" />
+                                                    <Label Text="{Binding LongestStreak, StringFormat='{0} dage'}" 
+                                                           FontSize="16" 
+                                                           FontAttributes="Bold"
+                                                           TextColor="#FD7E14" />
+                                                </StackLayout>
                                             </StackLayout>
 
                                             <StackLayout Grid.Column="2" HorizontalOptions="End">

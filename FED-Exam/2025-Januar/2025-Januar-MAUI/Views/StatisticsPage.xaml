@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:JanuarMAUI.ViewModels"
+             xmlns:models="clr-namespace:JanuarMAUI.Models"
              x:Class="JanuarMAUI.Views.StatisticsPage"
              x:DataType="viewmodels:StatisticsViewModel"
              Title="{Binding Title}">
@@ -98,25 +99,232 @@
                     </StackLayout>
                 </Frame>
 
-                <!-- Coming Soon -->
+                <!-- Calendar View -->
                 <Frame BackgroundColor="White"
                        BorderColor="#E0E0E0"
                        CornerRadius="15"
-                       Padding="40">
-                    <StackLayout Spacing="10" HorizontalOptions="Center">
-                        <Label Text="🚀" 
-                               FontSize="48" 
-                               HorizontalOptions="Center" />
-                        <Label Text="Mere statistik kommer snart!" 
-                               FontSize="16" 
+                       Padding="20">
+                    <StackLayout Spacing="15">
+                        <!-- Calendar Header -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            
+                            <Button Grid.Column="0"
+                                    Text="◀"
+                                    FontSize="18"
+                                    BackgroundColor="Transparent"
+                                    TextColor="Black"
+                                    WidthRequest="40"
+                                    HeightRequest="40"
+                                    Command="{Binding PreviousMonthCommand}" />
+                            
+                            <Label Grid.Column="1"
+                                   Text="{Binding CalendarMonthText}"
+                                   FontSize="18"
+                                   FontAttributes="Bold"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"
+                                   TextColor="Black" />
+                            
+                            <Button Grid.Column="2"
+                                    Text="▶"
+                                    FontSize="18"
+                                    BackgroundColor="Transparent"
+                                    TextColor="Black"
+                                    WidthRequest="40"
+                                    HeightRequest="40"
+                                    Command="{Binding NextMonthCommand}" />
+                        </Grid>
+
+                        <!-- Calendar Legend -->
+                        <StackLayout Orientation="Horizontal" Spacing="15" HorizontalOptions="Center">
+                            <StackLayout Orientation="Horizontal" Spacing="5">
+                                <Frame BackgroundColor="#4CAF50" WidthRequest="15" HeightRequest="15" CornerRadius="7" />
+                                <Label Text="100%" FontSize="12" VerticalOptions="Center" />
+                            </StackLayout>
+                            <StackLayout Orientation="Horizontal" Spacing="5">
+                                <Frame BackgroundColor="#8BC34A" WidthRequest="15" HeightRequest="15" CornerRadius="7" />
+                                <Label Text="80%+" FontSize="12" VerticalOptions="Center" />
+                            </StackLayout>
+                            <StackLayout Orientation="Horizontal" Spacing="5">
+                                <Frame BackgroundColor="#FFC107" WidthRequest="15" HeightRequest="15" CornerRadius="7" />
+                                <Label Text="60%+" FontSize="12" VerticalOptions="Center" />
+                            </StackLayout>
+                            <StackLayout Orientation="Horizontal" Spacing="5">
+                                <Frame BackgroundColor="#FF9800" WidthRequest="15" HeightRequest="15" CornerRadius="7" />
+                                <Label Text="40%+" FontSize="12" VerticalOptions="Center" />
+                            </StackLayout>
+                            <StackLayout Orientation="Horizontal" Spacing="5">
+                                <Frame BackgroundColor="#F44336" WidthRequest="15" HeightRequest="15" CornerRadius="7" />
+                                <Label Text="0%" FontSize="12" VerticalOptions="Center" />
+                            </StackLayout>
+                        </StackLayout>
+
+                        <!-- Day Headers -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            
+                            <Label Grid.Column="0" Text="Søn" FontSize="12" FontAttributes="Bold" HorizontalOptions="Center" />
+                            <Label Grid.Column="1" Text="Man" FontSize="12" FontAttributes="Bold" HorizontalOptions="Center" />
+                            <Label Grid.Column="2" Text="Tir" FontSize="12" FontAttributes="Bold" HorizontalOptions="Center" />
+                            <Label Grid.Column="3" Text="Ons" FontSize="12" FontAttributes="Bold" HorizontalOptions="Center" />
+                            <Label Grid.Column="4" Text="Tor" FontSize="12" FontAttributes="Bold" HorizontalOptions="Center" />
+                            <Label Grid.Column="5" Text="Fre" FontSize="12" FontAttributes="Bold" HorizontalOptions="Center" />
+                            <Label Grid.Column="6" Text="Lør" FontSize="12" FontAttributes="Bold" HorizontalOptions="Center" />
+                        </Grid>
+
+                        <!-- Calendar Grid -->
+                        <CollectionView ItemsSource="{Binding CalendarDays}"
+                                        SelectionMode="Single">
+                            <CollectionView.ItemsLayout>
+                                <GridItemsLayout Orientation="Vertical" Span="7" />
+                            </CollectionView.ItemsLayout>
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="{x:Type models:CalendarDay}">
+                                    <Frame BackgroundColor="{Binding BackgroundColor}"
+                                           BorderColor="LightGray"
+                                           CornerRadius="5"
+                                           Padding="0"
+                                           Margin="2"
+                                           HeightRequest="40"
+                                           WidthRequest="40">
+                                        <Frame.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:StatisticsViewModel}}, Path=SelectDayCommand}"
+                                                                  CommandParameter="{Binding}" />
+                                        </Frame.GestureRecognizers>
+                                        <Label Text="{Binding DisplayText}"
+                                               TextColor="{Binding TextColor}"
+                                               FontSize="14"
+                                               HorizontalOptions="Center"
+                                               VerticalOptions="Center" />
+                                    </Frame>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+
+                        <!-- Selected Day Details -->
+                        <StackLayout IsVisible="{Binding HasSelectedDay}" Spacing="10">
+                            <Label Text="{Binding SelectedDay.Date, StringFormat='Detaljer for {0:dd/MM/yyyy}'}"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   TextColor="Black" />
+                            
+                            <CollectionView ItemsSource="{Binding SelectedDay.HabitStatuses}">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="{x:Type models:HabitDayStatus}">
+                                        <Grid Padding="10,5" ColumnDefinitions="Auto,*,Auto">
+                                            <Label Grid.Column="0" 
+                                                   Text="{Binding StatusIcon}" 
+                                                   FontSize="16" 
+                                                   VerticalOptions="Center" />
+                                            <Label Grid.Column="1" 
+                                                   Text="{Binding HabitName}" 
+                                                   FontSize="14" 
+                                                   VerticalOptions="Center"
+                                                   Margin="10,0,0,0" />
+                                            <Label Grid.Column="2" 
+                                                   Text="{Binding Reason}" 
+                                                   FontSize="12" 
+                                                   TextColor="Red"
+                                                   VerticalOptions="Center"
+                                                   IsVisible="{Binding Reason, Converter={StaticResource StringToVisibilityConverter}}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </StackLayout>
+                    </StackLayout>
+                </Frame>
+
+                <!-- Habit Statistics -->
+                <Frame BackgroundColor="White"
+                       BorderColor="#E0E0E0"
+                       CornerRadius="15"
+                       Padding="20"
+                       IsVisible="{Binding HabitStatistics.Count, Converter={StaticResource StringToVisibilityConverter}}">
+                    <StackLayout Spacing="15">
+                        <Label Text="Vanestatistik" 
+                               FontSize="18" 
                                FontAttributes="Bold"
-                               HorizontalOptions="Center"
                                TextColor="Black" />
-                        <Label Text="Vi arbejder på detaljerede grafer og trends" 
-                               FontSize="14" 
-                               HorizontalOptions="Center"
-                               HorizontalTextAlignment="Center"
-                               TextColor="#6E6E6E" />
+                        
+                        <CollectionView ItemsSource="{Binding HabitStatistics}">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="{x:Type models:HabitStatistics}">
+                                    <Frame BackgroundColor="#F8F9FA"
+                                           BorderColor="#E9ECEF"
+                                           CornerRadius="10"
+                                           Padding="15"
+                                           Margin="0,5">
+                                        <StackLayout Spacing="10">
+                                            <Label Text="{Binding HabitName}"
+                                                   FontSize="16"
+                                                   FontAttributes="Bold"
+                                                   TextColor="Black" />
+                                            
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                
+                                                <StackLayout Grid.Column="0">
+                                                    <Label Text="Nuværende serie" 
+                                                           FontSize="12" 
+                                                           TextColor="#6C757D" />
+                                                    <Label Text="{Binding StreakText}" 
+                                                           FontSize="14" 
+                                                           FontAttributes="Bold"
+                                                           TextColor="#28A745" />
+                                                </StackLayout>
+                                                
+                                                <StackLayout Grid.Column="1">
+                                                    <Label Text="Bedste serie" 
+                                                           FontSize="12" 
+                                                           TextColor="#6C757D" />
+                                                    <Label Text="{Binding LongestStreakText}" 
+                                                           FontSize="14" 
+                                                           FontAttributes="Bold"
+                                                           TextColor="#007BFF" />
+                                                </StackLayout>
+                                                
+                                                <StackLayout Grid.Column="2">
+                                                    <Label Text="Gennemførelsesrate" 
+                                                           FontSize="12" 
+                                                           TextColor="#6C757D" />
+                                                    <Label Text="{Binding CompletionRateText}" 
+                                                           FontSize="14" 
+                                                           FontAttributes="Bold"
+                                                           TextColor="#FD7E14" />
+                                                </StackLayout>
+                                            </Grid>
+                                            
+                                            <ProgressBar Progress="{Binding CompletionRate}" 
+                                                         ProgressColor="#28A745"
+                                                         BackgroundColor="#E9ECEF" />
+                                            
+                                            <Label Text="{Binding TotalCompletedDays, StringFormat='{0} dage gennemført'}"
+                                                   FontSize="12"
+                                                   TextColor="#6C757D"
+                                                   HorizontalOptions="Center" />
+                                        </StackLayout>
+                                    </Frame>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
                     </StackLayout>
                 </Frame>
 
