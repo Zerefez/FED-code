@@ -1,7 +1,8 @@
 import { LoginForm } from '@/components/login-form'
-import { useTheme } from '@/components/theme-provider'
-import { ModeToggle } from '@/components/ui/mode-toggle'
+import { ThemeProvider, useTheme } from '@/components/theme-provider'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 import React, { useEffect, useState } from 'react'
+
 
 const App: React.FC = () => {
   const { theme } = useTheme()
@@ -23,24 +24,18 @@ const App: React.FC = () => {
   }, [])
   
   return (
+    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
     <div className="min-h-screen bg-background text-foreground">
         <div className="flex items-center justify-end fixed top-4 right-4 z-10">
-          <ModeToggle />
-        </div>
-        
-        {/* Debug info */}
-        <div className="fixed top-4 left-4 z-10 p-2 bg-card text-card-foreground rounded border text-xs max-w-xs">
-          <div>Current theme: {theme}</div>
-          <div>HTML classes: "{htmlClasses}"</div>
-          <div className="text-primary">Primary text</div>
-          <div className="text-muted-foreground">Muted text</div>
-          <div className="bg-secondary text-secondary-foreground p-1 rounded">Secondary bg</div>
+          <ThemeToggle />
         </div>
 
         <div className="w-full h-screen flex items-center justify-center">
           <LoginForm />
         </div>
     </div>
+    </ThemeProvider>
+
   )
 }
 
