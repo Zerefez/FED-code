@@ -185,8 +185,8 @@ export function AddHabitForm({ onHabitAdded, onCancel }: AddHabitFormProps) {
             </div>
 
             <div className="flex gap-2 mt-4">
-              <Button type="submit" disabled={isLoading} className="flex-1">
-                {isLoading ? "Opretter..." : "Opret vane"}
+              <Button type="submit" disabled={isLoading} variant="success" className="flex-1">
+                {isLoading ? "Opretter..." : "✨ Opret vane"}
               </Button>
               <Button type="button" variant="outline" onClick={onCancel}>
                 Annuller

@@ -135,9 +135,9 @@ export function LoginForm({
                 )}
               </div>
               
-              <div className="flex flex-col gap-3 bg-accent-foreground rounded-md">
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Logger ind..." : "Log ind"}
+              <div className="flex flex-col gap-3">
+                <Button type="submit" className="w-full" disabled={isLoading} variant="success">
+                  {isLoading ? "Logger ind..." : "🔑 Log ind"}
                 </Button>
               </div>
             </div>
