@@ -13,6 +13,13 @@
       "lastName": "Smith",
       "email": "js@example.com",
       "password": "asdfghj"
+    },
+    {
+      "firstName": "Test",
+      "lastName": "User",
+      "email": "test@test.com",
+      "password": "123456",
+      "id": "t6n_tnU"
     }
   ],
   "habits": [

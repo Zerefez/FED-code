@@ -10,7 +10,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
-import { checkEmailExists, registerUser, type RegisterUserData } from "@/services"
+import { UserService, type RegisterUserData } from "@/services"
 import React, { useState } from "react"
 import { useNavigate } from "react-router-dom"
 
@@ -51,7 +51,7 @@ export function RegisterForm({
     } else {
       // Check if email already exists
       try {
-        const emailExists = await checkEmailExists(formData.email)
+        const emailExists = await UserService.checkEmailExists(formData.email)
         if (emailExists) {
           newErrors.email = "E-mail er allerede registreret"
         }
@@ -100,7 +100,7 @@ export function RegisterForm({
         return
       }
 
-      const newUser = await registerUser(formData)
+      const newUser = await UserService.register(formData)
       console.log("User registered successfully:", newUser)
       
       setSuccessMessage("Bruger oprettet succesfuldt!")
