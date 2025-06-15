@@ -147,7 +147,7 @@ export const HomePage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-10 items-center justify-end">
                 <div className="space-y-4">
                   <h4 className="text-xl font-semibold text-foreground">Almindelige Services:</h4>
                   <ul className="space-y-2 text-muted-foreground">

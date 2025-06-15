@@ -1,0 +1,104 @@
+Forslag til hvordan db.json kan struktureres i opgave 2
+
+{
+  "pizzas": [
+    {
+      "id": 1,
+      "name": "Margherita",
+      "description": "Tomato, mozzarella, basil",
+      "price": 70.00
+    },
+    {
+      "id": 2,
+      "name": "Pepperoni",
+      "description": "Tomato, mozzarella, pepperoni",
+      "price": 70.00
+    },
+    {
+      "id": 3,
+      "name": "Hawaiian",
+      "description": "Tomato, mozzarella, ham, pineapple",
+      "price": 75.00
+    },
+    {
+      "id": 4,
+      "name": "Meat Feast",
+      "description": "Tomato, mozzarella, ham, pepperoni, bacon, chicken",
+      "price": 90.00
+    },
+    {
+      "id": 5,
+      "name": "Vegetarian",
+      "description": "Tomato, mozzarella, peppers, onions, mushrooms, sweetcorn",
+      "price": 75.00
+    },
+    {
+      "id": 6,
+      "name": "Vegan",
+      "description": "Tomato, vegan cheese, peppers, onions, mushrooms, sweetcorn",
+      "price": 80.00
+    }
+  ],
+  "extras": [
+    {
+      "id": 101,
+      "name": "BBQ Sauce",
+      "description": "Pot",
+      "price": 5.00
+    },
+    {
+      "id": 102,
+      "name": "Garlic Sauce",
+      "description": "Pot",
+      "price": 5.00
+    },
+    {
+      "id": 103,
+      "name": "Chilli Sauce",
+      "description": "Pot",
+      "price": 5.00
+    },
+    {
+      "id": 104,
+      "name": "Cheese",
+      "description": "Extra topping",
+      "price": 5.00
+    }
+  ],
+  "orders": [
+    {
+      "id": 1,
+      "customer": "Hans Hansen",
+      "address": "Villavej 1, 8000 Aarhus C",
+      "phone": "22334455",
+      "email": "hans@gmail.com",
+      "items": [
+        {
+          "count": 2,
+          "id": 1,
+          "name": "Margherita",
+          "description": "Tomato, mozzarella, basil",
+          "price": 70.00,
+          "subtotal": 140.00
+        },
+        {
+          "count": 1,
+          "id": 2,
+          "name": "Pepperoni",
+          "description": "Tomato, mozzarella, pepperoni",
+          "price": 70.00,
+          "extra": [
+            {
+              "id": 103,
+              "name": "Chilli Sauce",
+              "description": "Pot",
+              "price": 5.00
+            }
+          ]
+          "subtotal": 75.00
+        }
+      ],
+      "total":215.00
+    }
+  ]
+}

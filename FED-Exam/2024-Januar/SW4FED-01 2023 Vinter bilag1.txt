@@ -1,0 +1,30 @@
+// Modelklasser som kan benyttes ved opgave 1
+
+    public class Pizza
+    {
+        public string No { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public decimal Price { get; set; }
+    }
+	
+	public class Order
+	{
+		public int Id { get; set; }
+		public string Salesman { get; set; } = string.Empty;
+		public DateTime DateTime { get; set; } = DateTime.Now;
+		public decimal Total { get; set; } = decimal.Zero;
+	}
+
+    public class OrderLine
+    {
+        public int Id { get; set; }
+	public int OrderId { get; set; }
+        public int Count { get; set; }
+        public string No { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public decimal Price { get; set; }
+        public string Extra { get; set; } = string.Empty;
+        public double SubTotal { get; set; }
+
+    }
