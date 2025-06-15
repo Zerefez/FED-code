@@ -27,8 +27,8 @@ export const FormSection = ({ title, icon: Icon, fields, columns = 2 }: FormSect
     </h3>
     <div className={`grid gap-4 ${columns === 2 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'}`}>
       {fields.map(({ id, label, placeholder, value, onChange, error, required }) => (
-        <div key={id}>
-          <Label htmlFor={id}>{label}{required && ' *'}</Label>
+        <div  key={id}>
+          <Label className="pb-3" htmlFor={id}>{label}{required && ' *'}</Label>
           <Input
             id={id}
             placeholder={placeholder}

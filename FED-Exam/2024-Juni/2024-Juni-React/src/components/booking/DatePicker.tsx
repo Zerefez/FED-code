@@ -25,7 +25,7 @@ export const DatePicker = ({ value, onChange, error }: DatePickerProps) => {
         Ønsket Dato
       </h3>
       <div>
-        <Label htmlFor="date">Vælg dato *</Label>
+        <Label className="pb-3" htmlFor="date">Vælg dato *</Label>
         <div className="relative">
           <Input
             id="date"

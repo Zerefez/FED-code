@@ -44,9 +44,7 @@ const navigationData: NavigationItem[] = [
     title: 'Rediger aftale',
     href: '/agreement/edit',
     links: [
-      { id: 'modify', label: 'Rediger aftale', href: '/agreement/edit', icon: Edit },
-      { id: 'terms', label: 'Rediger betingelser', href: '/agreement/terms' },
-      { id: 'billing', label: 'Rediger faktura', href: '/agreement/billing' }
+      { id: 'modify', label: 'Rediger aftale', href: '/agreement/edit', icon: Edit }
     ]
   },
   {
@@ -55,8 +53,7 @@ const navigationData: NavigationItem[] = [
     href: '/agreement/view',
     links: [
       { id: 'current', label: 'Aktuel aftale', href: '/agreement/view', icon: FileText },
-      { id: 'history', label: 'Aftale historik', href: '/agreement/history' },
-      { id: 'status', label: 'Aftale status', href: '/agreement/status' }
+      { id: 'history', label: 'Aftale historik', href: '/agreement/history' }
     ]
   }
 ]

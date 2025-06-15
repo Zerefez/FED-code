@@ -1,5 +1,5 @@
 import { appointmentService } from '@/services/appointment-service'
-import { CreateAppointmentData } from '@/types/appointment'
+import { CreateAppointmentData, UpdateAppointmentData } from '@/types/appointment'
 import { useState } from 'react'
 
 export const useAppointments = () => {
@@ -26,6 +26,9 @@ export const useAppointments = () => {
   const create = (data: CreateAppointmentData) =>
     handleAsync(() => appointmentService.create(data))
 
+  const update = (id: number, data: UpdateAppointmentData) =>
+    handleAsync(() => appointmentService.update(id, data))
+
   const getAll = () =>
     handleAsync(() => appointmentService.getAll())
 
@@ -34,6 +37,7 @@ export const useAppointments = () => {
     error,
     searchByLicensePlate,
     create,
+    update,
     getAll
   }
 } 

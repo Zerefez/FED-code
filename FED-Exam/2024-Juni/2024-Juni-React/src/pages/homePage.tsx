@@ -50,7 +50,7 @@ export const HomePage = () => {
         {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-primary/10 via-background to-secondary/10 px-4">
         <div className="container mx-auto max-w-6xl">
-          <div className="text-center space-y-6 pt-40">
+          <div className="text-center space-y-6 pt-40 pb-10">
             <h1 className="text-4xl md:text-6xl font-bold text-foreground">
               Professionelt <span className="text-primary">Bilværksted</span>
             </h1>

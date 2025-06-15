@@ -5,6 +5,8 @@ import React, { useEffect, useState } from "react";
 import { Route, BrowserRouter as Router, Routes } from "react-router";
 import { Navigation } from "./components/Navigation";
 import { BookingPage } from "./pages/BookingPage";
+import { EditAppointmentPage } from "./pages/EditAppointmentPage";
+import { ViewAppointmentPage } from "./pages/ViewAppointmentPage";
 import { HomePage } from "./pages/homePage";
 
 const App: React.FC = () => {
@@ -38,10 +40,9 @@ const App: React.FC = () => {
           <Navigation />
         </div>
 
-        
+        <div className=" overflow-hidden">
           <Routes>
             <Route path="/" element={<HomePage />} />
-
             <Route path="/book" element={<BookingPage />} />
             <Route
               path="/book/service"
@@ -55,8 +56,10 @@ const App: React.FC = () => {
               path="/book/inspection"
               element={<BookingPage serviceType="inspection" />}
             />
+            <Route path="/agreement/edit" element={<EditAppointmentPage />} />
+            <Route path="/agreement/view" element={<ViewAppointmentPage />} />
           </Routes>
-        
+        </div>
 
         <Toaster />
       </Router>

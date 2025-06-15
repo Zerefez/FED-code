@@ -18,7 +18,7 @@ const getServiceTitle = (serviceType?: ServiceType) => {
 
 export const BookingPage = ({ serviceType }: BookingPageProps) => {
   return (
-    <div className="min-h-screen pt-40 px-4">
+    <div className="min-h-screen px-4 pt-40">
       <div className="container mx-auto max-w-4xl">
         <Card className="border-2 border-primary/20">
           <CardHeader className="text-center">
