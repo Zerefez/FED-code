@@ -10,79 +10,69 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuth } from "@/hooks/use-auth"
+import { useForm, ValidationRules } from "@/hooks/use-form"
 import { cn } from "@/lib/utils"
-import { loginUser, type LoginUserData } from "@/services"
-import React, { useState } from "react"
+import { loginUser } from "@/services"
+import React from "react"
 import { useNavigate } from "react-router-dom"
+
+interface LoginFormData {
+  email: string
+  password: string
+}
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const [formData, setFormData] = useState<LoginUserData>({
+
+  const initialData: LoginFormData = {
     email: "",
     password: "",
-  })
-  const [errors, setErrors] = useState<Partial<LoginUserData>>({})
-  const [isLoading, setIsLoading] = useState(false)
-  
+  }
+
   const { login } = useAuth()
   const navigate = useNavigate()
 
-  const validateForm = (): boolean => {
-    const newErrors: Partial<LoginUserData> = {}
-
-    // Validate email
-    if (!formData.email.trim()) {
-      newErrors.email = "E-mail er påkrævet"
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "E-mail format er ugyldig"
-    }
-
-    // Validate password
-    if (!formData.password) {
-      newErrors.password = "Password er påkrævet"
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+  const validationRules: ValidationRules<LoginFormData> = {
+    email: (value) => !value.trim() ? "E-mail er påkrævet" : undefined,
+    password: (value) => !value.trim() ? "Password er påkrævet" : undefined,
   }
 
-  const handleInputChange = (field: keyof LoginUserData, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }))
-    
-    // Clear error for this field when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({
-        ...prev,
-        [field]: undefined
-      }))
-    }
-  }
-
+  const {
+    formData,
+    errors,
+    isLoading,
+    setIsLoading,
+    setErrors,
+    handleInputChange,
+    validateForm,
+  } = useForm(initialData)
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    if (!validateForm()) {
-      return
-    }
     
     setIsLoading(true)
     
     try {
+      const isValid = validateForm(validationRules)
+      
+      if (!isValid) {
+        setIsLoading(false)
+        return
+      }
+
       const user = await loginUser(formData)
       
       if (user) {
         login(user)
         navigate('/app/dashboard')
       } else {
-        setErrors({ email: "Ugyldige login oplysninger" })
+        setErrors({ email: "Ugyldig e-mail eller password" })
       }
+      
     } catch (error) {
-      console.error('Login error:', error)
+      console.error("Login error:", error)
       setErrors({ email: "Der opstod en fejl under login. Prøv igen." })
     } finally {
       setIsLoading(false)
@@ -101,6 +91,12 @@ export function LoginForm({
         <CardContent>
           <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
+              {errors.general && (
+                <div className="p-3 text-red-700 bg-red-100 border border-red-300 rounded-md">
+                  {errors.general}
+                </div>
+              )}
+              
               <div className="grid gap-3">
                 <Label htmlFor="email">E-mail</Label>
                 <Input

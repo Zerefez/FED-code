@@ -28,15 +28,15 @@
       "name": "Exercise",
       "description": "Run 5 miles",
       "startDate": "2025-01-01",
-      "frequency": "Daily",
+      "frequency": "daily",
       "userId": "1"
     },
     {
       "id": "2",
       "name": "Read",
       "description": "Read 30 minutes",
-      "startDate": "2025-01-01",
-      "frequency": "Daily",
+      "startDate": "2025-06-15",
+      "frequency": "three-times-weekly",
       "userId": "1"
     },
     {
