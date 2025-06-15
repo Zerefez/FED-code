@@ -2,10 +2,10 @@ import { useState } from 'react';
 
 export interface UseFormReturn<T> {
   formData: T;
-  errors: { [key: string]: string };
+  errors: Record<string, string>;
   isLoading: boolean;
   setFormData: React.Dispatch<React.SetStateAction<T>>;
-  setErrors: React.Dispatch<React.SetStateAction<{ [key: string]: string }>>;
+  setErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   handleInputChange: (field: keyof T, value: string) => void;
   validateForm: (validationRules: ValidationRules<T>) => boolean;
@@ -21,7 +21,7 @@ export function useForm<T extends Record<string, any>>(
   initialData: T
 ): UseFormReturn<T> {
   const [formData, setFormData] = useState<T>(initialData);
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (field: keyof T, value: string) => {
@@ -40,7 +40,7 @@ export function useForm<T extends Record<string, any>>(
   };
 
   const validateForm = (validationRules: ValidationRules<T>): boolean => {
-    const newErrors: { [key: string]: string } = {};
+    const newErrors: Record<string, string> = {};
 
     Object.keys(validationRules).forEach(field => {
       const rule = validationRules[field as keyof T];

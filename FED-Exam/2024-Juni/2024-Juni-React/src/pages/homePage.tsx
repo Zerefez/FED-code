@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Calendar, Car, Clock, MapPin, Phone, Settings, Shield, Star, Users, Wrench } from "lucide-react"
+import { Link } from "react-router"
 
 export const HomePage = () => {
   const services = [
@@ -43,13 +44,13 @@ export const HomePage = () => {
       description: "Vi står bag vores arbejde med fuld garanti på alle ydelser"
     }
   ]
-
+    
   return (
     <div className="min-h-screen">
         {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-primary/10 via-background to-secondary/10 py-20 px-4">
+      <section className="relative bg-gradient-to-br from-primary/10 via-background to-secondary/10 px-4">
         <div className="container mx-auto max-w-6xl">
-          <div className="text-center space-y-6 pt-20">
+          <div className="text-center space-y-6 pt-40">
             <h1 className="text-4xl md:text-6xl font-bold text-foreground">
               Professionelt <span className="text-primary">Bilværksted</span>
             </h1>
@@ -57,9 +58,11 @@ export const HomePage = () => {
               Vi registrerer og udfører alle typer bilservice - fra almindelig vedligeholdelse til komplekse reparationer
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
-              <Button size="lg" className="text-lg px-8 py-6">
-                <Calendar className="mr-2 h-5 w-5"  />
-                Book ny aftale
+              <Button asChild size="lg" className="text-lg px-8 py-6">
+                <Link to="/book">
+                  <Calendar className="mr-2 h-5 w-5"  />
+                  Book ny aftale
+                </Link>
               </Button>
               <Button variant="outline" size="lg" className="text-lg px-8 py-6">
                 <Phone className="mr-2 h-5 w-5" />
@@ -193,9 +196,11 @@ export const HomePage = () => {
               </div>
               
               <div className="text-center pt-6">
-                <Button size="lg" className="text-lg px-12 py-6">
-                  <Calendar className="mr-2 h-5 w-5" />
-                  Start Registrering
+                <Button asChild size="lg" className="text-lg px-12 py-6">
+                  <Link to="/book">
+                    <Calendar className="mr-2 h-5 w-5" />
+                    Start Registrering
+                  </Link>
                 </Button>
               </div>
             </CardContent>

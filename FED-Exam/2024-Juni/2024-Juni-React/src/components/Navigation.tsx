@@ -1,5 +1,6 @@
 import { Calendar, Edit, FileText, LucideIcon } from 'lucide-react'
 import React, { useState } from 'react'
+import { Link } from 'react-router'
 import { HoveredLink } from './ui/navbar-menu'
 
   // Interfaces
@@ -33,10 +34,9 @@ const navigationData: NavigationItem[] = [
     title: 'Book ny aftale',
     href: '/book',
     links: [
-      { id: 'maintenance', label: 'Planlæg service', href: '/book/maintenance', icon: Calendar },
+      { id: 'service', label: 'Service & olieskift', href: '/book/service', icon: Calendar },
       { id: 'repair', label: 'Reparér bil', href: '/book/repair' },
-      { id: 'inspection', label: 'Kontrol af bil', href: '/book/inspection' },
-      { id: 'emergency', label: 'Ulykke', href: '/book/emergency' }
+      { id: 'inspection', label: 'Kontrol af bil', href: '/book/inspection' }
     ]
   },
   {
@@ -46,8 +46,7 @@ const navigationData: NavigationItem[] = [
     links: [
       { id: 'modify', label: 'Rediger aftale', href: '/agreement/edit', icon: Edit },
       { id: 'terms', label: 'Rediger betingelser', href: '/agreement/terms' },
-      { id: 'billing', label: 'Rediger faktura', href: '/agreement/billing' },
-      { id: 'cancel', label: 'Aftale afslutning', href: '/agreement/cancel' }
+      { id: 'billing', label: 'Rediger faktura', href: '/agreement/billing' }
     ]
   },
   {
@@ -57,7 +56,6 @@ const navigationData: NavigationItem[] = [
     links: [
       { id: 'current', label: 'Aktuel aftale', href: '/agreement/view', icon: FileText },
       { id: 'history', label: 'Aftale historik', href: '/agreement/history' },
-      { id: 'download', label: 'Download PDF', href: '/agreement/download' },
       { id: 'status', label: 'Aftale status', href: '/agreement/status' }
     ]
   }
@@ -75,12 +73,12 @@ export const Navigation: React.FC = () => {
       >
         {navigationData.map((navItem) => (
           <div key={navItem.id} onMouseEnter={() => setActive(navItem.title)} className="relative">
-            <div
-              onClick={() => window.location.href = navItem.href}
+            <Link
+              to={navItem.href}
               className="cursor-pointer text-foreground hover:text-primary transition-colors duration-300 hover:underline"
             >
               {navItem.title}
-            </div>
+            </Link>
             {active === navItem.title && (
               <div className="absolute top-[calc(100%_+_1.2rem)] left-1/2 transform -translate-x-1/2 pt-4">
                 <div className="bg-popover border border-border rounded-2xl overflow-hidden shadow-xl">

@@ -2,7 +2,7 @@
   "appointments": [
     {
       "customerName": "Anders And",
-      "address": "Villavej 25\n8888 Andeby",
+      "address": "Villavej 25, 8888 Andeby",
       "carBrand": "Ford",
       "carModel": "Kuga",
       "licensePlate": "AL12345",
@@ -11,8 +11,8 @@
       "id": 1
     },
     {
-      "customerName": "Andersine",
-      "address": "Bredgade 22\n8888 Andeby",
+      "customerName": "Andersine And",
+      "address": "Bredgade 22, 8888 Andeby",
       "carBrand": "Tesla",
       "carModel": "Model Y",
       "licensePlate": "BB45678",

@@ -1,11 +1,13 @@
-import { ThemeProvider, useTheme } from "@/components/theme-provider";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import React, { useEffect, useState } from "react";
+import { Route, BrowserRouter as Router, Routes } from "react-router";
 import { Navigation } from "./components/Navigation";
+import { BookingPage } from "./pages/BookingPage";
 import { HomePage } from "./pages/homePage";
 
 const App: React.FC = () => {
-  const { theme } = useTheme();
   const [htmlClasses, setHtmlClasses] = useState("");
 
   useEffect(() => {
@@ -28,14 +30,36 @@ const App: React.FC = () => {
 
   return (
     <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-      <div className="flex items-center justify-end fixed top-4 right-4 z-10">
-        <ThemeToggle />
-      </div>
-      <div className="fixed top-0 left-0 w-full z-1">
-        <Navigation />
-      </div>
+      <Router>
+        <div className="flex items-center justify-end fixed top-4 right-4 z-10">
+          <ThemeToggle />
+        </div>
+        <div className="fixed top-0 left-0 w-full z-1">
+          <Navigation />
+        </div>
 
-      <HomePage />
+        
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+
+            <Route path="/book" element={<BookingPage />} />
+            <Route
+              path="/book/service"
+              element={<BookingPage serviceType="service" />}
+            />
+            <Route
+              path="/book/repair"
+              element={<BookingPage serviceType="repair" />}
+            />
+            <Route
+              path="/book/inspection"
+              element={<BookingPage serviceType="inspection" />}
+            />
+          </Routes>
+        
+
+        <Toaster />
+      </Router>
     </ThemeProvider>
   );
 };
