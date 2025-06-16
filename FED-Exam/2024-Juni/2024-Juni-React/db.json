@@ -8,7 +8,7 @@
       "licensePlate": "AL12345",
       "date": "2024-07-01",
       "taskDescription": "Årlig service + olieskift",
-      "id": 1
+      "id": "1"
     },
     {
       "customerName": "Andersine And",
@@ -18,7 +18,17 @@
       "licensePlate": "BB45678",
       "date": "2024-07-02",
       "taskDescription": "Årlig service",
-      "id": 2
+      "id": "2"
+    },
+    {
+      "id": "7208",
+      "customerName": "John Nguyen",
+      "address": "Ryvej 26, st.th",
+      "carBrand": "Ford",
+      "carModel": "Fiesta",
+      "licensePlate": "DN81764",
+      "date": "2025-06-25",
+      "taskDescription": "Årlig service + olieskift"
     }
   ]
 }
