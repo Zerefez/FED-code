@@ -1,0 +1,108 @@
+{
+  "exams": [
+    {
+      "id": "1",
+      "examtermin": "sommer 25",
+      "courseName": "Introduktion til Programmering",
+      "date": "2025-06-25",
+      "numberOfQuestions": 10,
+      "examDurationMinutes": 15,
+      "startTime": "09:00"
+    },
+    {
+      "id": "2",
+      "examtermin": "sommer 25",
+      "courseName": "Avanceret Programmering",
+      "date": "2025-06-26",
+      "numberOfQuestions": 15,
+      "examDurationMinutes": 20,
+      "startTime": "09:00"
+    },
+    {
+      "examtermin": "Sommer 25",
+      "courseName": "Front-end udvikling",
+      "date": "2025-05-23",
+      "numberOfQuestions": 8,
+      "examDurationMinutes": 15,
+      "startTime": "14:00",
+      "id": "CKxm710"
+    },
+    {
+      "examtermin": "Sommer 25",
+      "courseName": "Test",
+      "date": "2025-07-03",
+      "numberOfQuestions": 10,
+      "examDurationMinutes": 15,
+      "startTime": "09:00",
+      "id": "OurQT6E"
+    }
+  ],
+  "students": [
+    {
+      "id": "1",
+      "exam": "1",
+      "studenNo": "123456",
+      "firstName": "Alice",
+      "lastName": "Andersen",
+      "questionNo": 1,
+      "examDurationMinutes": 15,
+      "notes": "Svarer rigtig godt på spørgsmålet, men har dog en fejl i koden",
+      "grade": "10"
+    },
+    {
+      "id": "2",
+      "exam": "1",
+      "studenNo": "654321",
+      "firstName": "Bob",
+      "lastName": "Bakker",
+      "questionNo": 7,
+      "examDurationMinutes": 16,
+      "notes": "God redegørelse med kun ubetydelige mangler",
+      "grade": "12"
+    },
+    {
+      "exam": "CKxm710",
+      "studenNo": "1231414",
+      "firstName": "John",
+      "lastName": "Nguyen",
+      "id": "YldwszV",
+      "questionNo": 7,
+      "examDurationMinutes": 1,
+      "notes": "rterte",
+      "grade": "4"
+    },
+    {
+      "exam": "CKxm710",
+      "studenNo": "2131231",
+      "firstName": "Tester",
+      "lastName": "T",
+      "id": "Y3ALsqx",
+      "questionNo": 1,
+      "examDurationMinutes": 1,
+      "notes": "ssdasdasdasas",
+      "grade": "02"
+    },
+    {
+      "exam": "OurQT6E",
+      "studenNo": "125443",
+      "firstName": "Tester 4",
+      "lastName": "T",
+      "id": "dnv27qt",
+      "questionNo": 6,
+      "examDurationMinutes": 0,
+      "notes": "sadsa",
+      "grade": "4"
+    },
+    {
+      "exam": "OurQT6E",
+      "studenNo": "1231524",
+      "firstName": "Tester 4",
+      "lastName": "Nguyen",
+      "id": "Ejp61OB",
+      "questionNo": 1,
+      "examDurationMinutes": 1,
+      "notes": "adsasd",
+      "grade": "02"
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="_2025JuneMAUI.MainPage"
+             Title="Eksamen System"
+             BackgroundColor="{StaticResource White}">
+
+    <ScrollView>
+        <VerticalStackLayout
+            Padding="32"
+            Spacing="32">
+            
+            <!-- Header -->
+            <StackLayout Spacing="8" HorizontalOptions="Center">
+                <Label
+                    Text="Eksamen System"
+                    Style="{StaticResource Headline}"
+                    SemanticProperties.HeadingLevel="Level1" />
+
+                <Label
+                    Text="Administrer mundtlige eksamener"
+                    Style="{StaticResource SubHeadline}"
+                    SemanticProperties.HeadingLevel="Level2"
+                    SemanticProperties.Description="System til administration af mundtlige eksamener" />
+            </StackLayout>
+
+            <!-- Navigation Buttons -->
+            <StackLayout Spacing="16">
+                <Button
+                    Text="Opret Eksamen"
+                    Clicked="OnExamPageClicked"
+                    HorizontalOptions="Fill" />
+
+                <Button
+                    Text="Administrer Studerende"
+                    Clicked="OnStudentPageClicked"
+                    HorizontalOptions="Fill" />
+
+                <Button
+                    Text="Start Eksamen"
+                    Clicked="OnStartExamPageClicked"
+                    HorizontalOptions="Fill" />
+
+                <Button
+                    Text="Se Historik"
+                    Clicked="OnHistoryPageClicked"
+                    HorizontalOptions="Fill" />
+            </StackLayout>
+
+            <!-- Information Card -->
+            <Border Style="{StaticResource CardStyle}" Padding="24" Margin="0,16,0,0">
+                <StackLayout Spacing="16">
+                    <Label
+                        Text="Funktioner"
+                        Style="{StaticResource Subtitle}" />
+                    
+                    <StackLayout Spacing="8">
+                        <Label
+                            Text="• Opret og administrer eksamener"
+                            Style="{StaticResource Body}" />
+                        
+                        <Label
+                            Text="• Tilføj studerende til eksamener"
+                            Style="{StaticResource Body}" />
+                        
+                        <Label
+                            Text="• Start eksamen og naviger mellem studerende"
+                            Style="{StaticResource Body}" />
+                        
+                        <Label
+                            Text="• Tildel tilfældige spørgsmål"
+                            Style="{StaticResource Body}" />
+                        
+                        <Label
+                            Text="• Indtast karakterer og noter"
+                            Style="{StaticResource Body}" />
+                        
+                        <Label
+                            Text="• Se karaktergennemsnit"
+                            Style="{StaticResource Body}" />
+                        
+                        <Label
+                            Text="• Se historik og statistikker for tidligere eksamener"
+                            Style="{StaticResource Body}" />
+                    </StackLayout>
+                </StackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<views:BaseContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                       xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                       xmlns:views="clr-namespace:_2025JuneMAUI.Views"
+                       x:Class="_2025JuneMAUI.Views.ExamSessionPage"
+                       x:TypeArguments="viewmodels:ExamSessionViewModel"
+                       xmlns:viewmodels="clr-namespace:_2025JuneMAUI.ViewModels"
+                       Title="{Binding Title}"
+                       BackgroundColor="{StaticResource White}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="32" Spacing="32">
+            
+            <!-- Header -->
+            <Label 
+                Text="Start Eksamen" 
+                Style="{StaticResource Headline}"
+                HorizontalOptions="Center" />
+
+            <!-- Exam Selection (Only visible when exam is not started) -->
+            <StackLayout IsVisible="{Binding ShowExamSelection}" Spacing="24">
+                
+                <!-- Exam Selection Card -->
+                <Border Style="{StaticResource CardStyle}" Padding="24">
+                    <StackLayout Spacing="16">
+                        <Label Text="Vælg Eksamen at Starte" Style="{StaticResource Title}"/>
+                        <Border Stroke="{StaticResource Gray300}" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="{StaticResource White}">
+                            <Picker ItemsSource="{Binding Exams}" 
+                                SelectedItem="{Binding SelectedExam}"
+                                ItemDisplayBinding="{Binding CourseName}"
+                                Title="Vælg en eksamen"
+                                BackgroundColor="Transparent"
+                                Margin="12,8"/>
+                        </Border>
+                    </StackLayout>
+                </Border>
+
+                <!-- Exam Info Display -->
+                <Border Style="{StaticResource CardStyle}" Padding="24" IsVisible="{Binding ShowExamInfo}">
+                    <StackLayout Spacing="12">
+                        <Label Text="Eksamen Information" Style="{StaticResource Subtitle}"/>
+                        <Label Text="{Binding ExamInfo}" Style="{StaticResource Body}" LineBreakMode="WordWrap"/>
+                        <Label Text="{Binding ProgressInfo}" Style="{StaticResource Body}" FontAttributes="Bold"/>
+                    </StackLayout>
+                </Border>
+
+                <Button Text="Start Eksamen" 
+                        Command="{Binding StartExamCommand}"
+                        HorizontalOptions="Center"
+                        WidthRequest="200"/>
+            </StackLayout>
+
+            <!-- Exam Session View (Only visible when exam is started) -->
+            <StackLayout IsVisible="{Binding IsExamStarted}" Spacing="24">
+                
+                <!-- Current Exam Info -->
+                <Border Style="{StaticResource CardStyle}" Padding="24">
+                    <StackLayout Spacing="12">
+                        <Label Text="Aktuel Eksamen" Style="{StaticResource Subtitle}"/>
+                        <Label Text="{Binding ExamInfo}" Style="{StaticResource Body}" LineBreakMode="WordWrap"/>
+                    </StackLayout>
+                </Border>
+
+                <!-- Progress -->
+                <Border Style="{StaticResource CardStyle}" Padding="24">
+                    <StackLayout Spacing="12">
+                        <Label Text="Fremskridt" Style="{StaticResource Subtitle}"/>
+                        <Label Text="{Binding ProgressInfo}" Style="{StaticResource Body}" FontAttributes="Bold"/>
+                    </StackLayout>
+                </Border>
+            </StackLayout>
+
+            <!-- Current Student Display (Only visible when exam is started) -->
+            <Border Style="{StaticResource CardStyle}" Padding="24" IsVisible="{Binding IsExamStarted}">
+                <StackLayout Spacing="20">
+                    <Label Text="Nuværende Studerende" 
+                           Style="{StaticResource Title}"
+                           HorizontalOptions="Center"/>
+                    
+                    <Label Text="{Binding StudentInfo}" 
+                           Style="{StaticResource Body}"
+                           LineBreakMode="WordWrap"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center"/>
+
+                    <!-- Question Display -->
+                    <Border Padding="20" BackgroundColor="{StaticResource Gray100}" IsVisible="{Binding HasDrawnQuestion}">
+                        <StackLayout Spacing="8">
+                            <Label Text="Trukket Spørgsmål" 
+                                   Style="{StaticResource Subtitle}"
+                                   HorizontalOptions="Center"/>
+                            <Label Text="{Binding DrawnQuestionDisplay}" 
+                                   FontSize="32" 
+                                   FontAttributes="Bold" 
+                                   TextColor="{StaticResource Black}"
+                                   HorizontalOptions="Center"/>
+                        </StackLayout>
+                    </Border>
+
+                    <!-- Timer Display -->
+                    <Border Padding="20" BackgroundColor="{StaticResource Gray100}" IsVisible="{Binding IsTimerRunning}">
+                        <StackLayout Spacing="8">
+                            <Label Text="{Binding TimerStatus}" 
+                                   Style="{StaticResource Subtitle}"
+                                   HorizontalOptions="Center"/>
+                            <Label Text="{Binding TimerDisplay}" 
+                                   FontSize="36" 
+                                   FontAttributes="Bold" 
+                                   TextColor="{Binding TimerColor}"
+                                   HorizontalOptions="Center"/>
+                        </StackLayout>
+                    </Border>
+                </StackLayout>
+            </Border>
+
+            <!-- Exam Flow Buttons -->
+            <StackLayout Spacing="16" IsVisible="{Binding IsExamStarted}">
+                
+                <!-- Step 1: Draw Question -->
+                <Button Text="Træk Spørgsmål" 
+                        Command="{Binding DrawQuestionCommand}"
+                        IsVisible="{Binding ShowDrawQuestionButton}"
+                        HorizontalOptions="Center"
+                        WidthRequest="200"/>
+
+                <!-- Step 2: Start Examination -->
+                <Button Text="Start Eksamination" 
+                        Command="{Binding StartExaminationCommand}"
+                        IsVisible="{Binding ShowStartExaminationButton}"
+                        HorizontalOptions="Center"
+                        WidthRequest="200"/>
+
+                <!-- Step 3: End Examination -->
+                <Button Text="Slut Eksamen" 
+                        Command="{Binding EndExaminationCommand}"
+                        IsVisible="{Binding ShowEndExaminationButton}"
+                        BackgroundColor="#DC2626"
+                        HorizontalOptions="Center"
+                        WidthRequest="200"/>
+
+            </StackLayout>
+
+            <!-- Student Summary (Only visible after student data is saved) -->
+            <Border Style="{StaticResource CardStyle}" Padding="24" IsVisible="{Binding ShowStudentSummary}">
+                <StackLayout Spacing="20">
+                    <Label Text="Eksamen Afsluttet for Studerende" 
+                           Style="{StaticResource Title}"
+                           HorizontalOptions="Center"/>
+                    
+                    <Label Text="{Binding StudentSummaryInfo}" 
+                           Style="{StaticResource Body}"
+                           LineBreakMode="WordWrap"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center"/>
+
+                    <!-- Next Student Button in Summary -->
+                    <Button Text="Næste Studerende" 
+                            Command="{Binding NextStudentCommand}"
+                            HorizontalOptions="Center"
+                            WidthRequest="200"/>
+                </StackLayout>
+            </Border>
+
+            <!-- Exam Completion Overview (When all students are done or exam not started) -->
+            <Border Style="{StaticResource CardStyle}" Padding="24" IsVisible="{Binding ShowExamCompletionOverview}">
+                <StackLayout Spacing="20">
+                    <Label Text="{Binding StudentSummaryInfo}" 
+                           Style="{StaticResource Body}"
+                           LineBreakMode="WordWrap"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center"/>
+
+                    <!-- Back to Selection Button -->
+                    <Button Text="Tilbage til Vælg Eksamen" 
+                            Command="{Binding BackToSelectionCommand}"
+                            Style="{StaticResource SecondaryButton}"
+                            HorizontalOptions="Center"
+                            WidthRequest="220"/>
+                </StackLayout>
+            </Border>
+
+            <!-- Student Data Entry (Only visible during examination) -->
+            <Border Style="{StaticResource CardStyle}" Padding="24" IsVisible="{Binding ShowDataEntry}">
+                <StackLayout Spacing="20">
+                    
+                    <Label Text="Eksamination Information" Style="{StaticResource Title}"/>
+
+                    <!-- Actual Examination Time Display -->
+                    <Border Padding="16" BackgroundColor="{StaticResource Gray100}" IsVisible="{Binding ShowActualTime}">
+                        <Label Text="{Binding ActualExaminationTime}" 
+                               Style="{StaticResource Body}"
+                               FontAttributes="Bold"/>
+                    </Border>
+
+                    <!-- Notes -->
+                    <StackLayout Spacing="8">
+                        <Label Text="Noter" Style="{StaticResource Subtitle}"/>
+                        <Border Stroke="{StaticResource Black}" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="{StaticResource White}">
+                            <Editor Text="{Binding Notes}" 
+                                    Placeholder="Indtast noter om eksaminationen..."
+                                    HeightRequest="100"
+                                    BackgroundColor="{StaticResource White}"
+                                    IsEnabled="{Binding CanEditNotes}"
+                                    Margin="12,8"/>
+                        </Border>
+                    </StackLayout>
+
+                    <!-- Grade -->
+                    <StackLayout Spacing="8">
+                        <Label Text="Karakter" Style="{StaticResource Subtitle}"/>
+                        <Border Stroke="{StaticResource Black}" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="{StaticResource White}">
+                            <Picker ItemsSource="{Binding AvailableGrades}"
+                                    SelectedItem="{Binding Grade}"
+                                    Title="Vælg karakter"
+                                    BackgroundColor="{StaticResource White}"
+                                    IsEnabled="{Binding CanEnterGrade}"
+                                    Margin="12,8"/>
+                        </Border>
+                    </StackLayout>
+
+                    <Button Text="Gem og Afslut Studerende" 
+                            Command="{Binding SaveStudentDataCommand}"
+                            IsVisible="{Binding ShowSaveButton}"
+                            HorizontalOptions="Center"
+                            WidthRequest="500"/>
+                </StackLayout>
+            </Border>
+
+            <!-- Loading Indicator -->
+            <ActivityIndicator IsVisible="{Binding IsBusy}" 
+                               IsRunning="{Binding IsBusy}" 
+                               Color="{StaticResource Black}"
+                               HeightRequest="40"/>
+        </VerticalStackLayout>
+    </ScrollView>
+</views:BaseContentPage> 

@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<views:BaseContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                       xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                       xmlns:views="clr-namespace:_2025JuneMAUI.Views"
+                       x:Class="_2025JuneMAUI.Views.ExamPage"
+                       x:TypeArguments="viewmodels:ExamViewModel"
+                       xmlns:viewmodels="clr-namespace:_2025JuneMAUI.ViewModels"
+                       Title="{Binding Title}"
+                       BackgroundColor="{StaticResource White}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="32" Spacing="32">
+            
+            <!-- Header -->
+            <Label 
+                Text="Opret Eksamen" 
+                Style="{StaticResource Headline}"
+                HorizontalOptions="Center" />
+
+            <!-- Form Card -->
+            <Border Style="{StaticResource CardStyle}" Padding="24">
+                    <VerticalStackLayout Spacing="20">
+                        
+                        <!-- Eksamenstermin -->
+                        <StackLayout Spacing="8">
+                            <Label Text="Eksamenstermin" Style="{StaticResource Subtitle}"/>
+                            <Border Stroke="{StaticResource Gray300}" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="{StaticResource White}">
+                                <Entry Text="{Binding ExamTermin}" 
+                                       Placeholder="f.eks. sommer 25"
+                                       BackgroundColor="Transparent"
+                                       Margin="12,8"/>
+                            </Border>
+                        </StackLayout>
+
+                        <!-- Kursusnavn -->
+                        <StackLayout Spacing="8">
+                            <Label Text="Kursusnavn" Style="{StaticResource Subtitle}"/>
+                            <Border Stroke="{StaticResource Gray300}" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="{StaticResource White}">
+                                <Entry Text="{Binding CourseName}" 
+                                       Placeholder="f.eks. Introduktion til Programmering"
+                                       BackgroundColor="Transparent"
+                                       Margin="12,8"/>
+                            </Border>
+                        </StackLayout>
+
+                        <!-- Dato -->
+                        <StackLayout Spacing="8">
+                            <Label Text="Dato" Style="{StaticResource Subtitle}"/>
+                            <Border Stroke="{StaticResource Gray300}" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="{StaticResource White}">
+                                <DatePicker Date="{Binding Date}" 
+                                           TextColor="{StaticResource Black}"
+                                           BackgroundColor="Transparent"
+                                           Margin="12,8"/>
+                            </Border>
+                        </StackLayout>
+
+                        <!-- Grid for smaller fields -->
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
+                            <!-- Antal spørgsmål -->
+                            <StackLayout Grid.Column="0" Spacing="8">
+                                <Label Text="Antal spørgsmål" Style="{StaticResource Subtitle}"/>
+                                <Border Stroke="{StaticResource Gray300}" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="{StaticResource White}">
+                                    <Entry Text="{Binding NumberOfQuestions}" 
+                                           Placeholder="10"
+                                           Keyboard="Numeric"
+                                           BackgroundColor="Transparent"
+                                           Margin="12,8"/>
+                                </Border>
+                            </StackLayout>
+
+                            <!-- Eksaminationstid -->
+                            <StackLayout Grid.Column="1" Spacing="8">
+                                <Label Text="Eksaminationstid (min)" Style="{StaticResource Subtitle}"/>
+                                <Border Stroke="{StaticResource Gray300}" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="{StaticResource White}">
+                                    <Entry Text="{Binding ExamDurationMinutes}" 
+                                           Placeholder="15"
+                                           Keyboard="Numeric"
+                                           BackgroundColor="Transparent"
+                                           Margin="12,8"/>
+                                </Border>
+                            </StackLayout>
+                        </Grid>
+
+                        <!-- Starttidspunkt -->
+                        <StackLayout Spacing="8">
+                            <Label Text="Starttidspunkt" Style="{StaticResource Subtitle}"/>
+                            <Border Stroke="{StaticResource Gray300}" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="{StaticResource White}">
+                                <Entry Text="{Binding StartTime}" 
+                                       Placeholder="09:00"
+                                       BackgroundColor="Transparent"
+                                       Margin="12,8"/>
+                            </Border>
+                        </StackLayout>
+
+                        <!-- Action Buttons -->
+                        <StackLayout Orientation="Horizontal" HorizontalOptions="Center" Spacing="16" Margin="0,16,0,0">
+                            <Button Text="Gem Eksamen" 
+                                    Command="{Binding AddExamCommand}"
+                                    WidthRequest="160" />
+                            <Button Text="Opdater" 
+                                    Command="{Binding UpdateExamCommand}"
+                                    Style="{StaticResource SecondaryButton}"
+                                    WidthRequest="100" />
+                            <Button Text="Ryd" 
+                                    Command="{Binding ClearFormCommand}"
+                                    Style="{StaticResource SecondaryButton}"
+                                    WidthRequest="80" />
+                        </StackLayout>
+                    </VerticalStackLayout>
+            </Border>
+            <!-- Exams List -->
+            <StackLayout Spacing="16">
+                <Label Text="Eksisterende Eksamener" Style="{StaticResource Title}"/>
+                
+                <ActivityIndicator IsVisible="{Binding IsBusy}" 
+                                   IsRunning="{Binding IsBusy}" 
+                                   Color="{StaticResource Black}"
+                                   HeightRequest="40"/>
+                
+                <CollectionView ItemsSource="{Binding Exams}" 
+                                SelectedItem="{Binding SelectedExam}"
+                                SelectionMode="Single"
+                                BackgroundColor="Transparent">
+
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource CardStyle}" Padding="24">
+                                    <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto" RowSpacing="8">
+                                        
+                                        <Label Grid.Row="0" Grid.Column="0" 
+                                               Text="{Binding CourseName}" 
+                                               Style="{StaticResource Subtitle}"
+                                               Margin="0" />
+                                        
+                                        <Label Grid.Row="1" Grid.Column="0" 
+                                               Text="{Binding ExamTermin, StringFormat='Termin: {0}'}" 
+                                               Style="{StaticResource Body}"/>
+                                        
+                                        <StackLayout Grid.Row="2" Grid.Column="0" Orientation="Horizontal">
+                                            <Label Text="{Binding Date, StringFormat='Dato: {0}'}" Style="{StaticResource Caption}"/>
+                                            <Label Text="{Binding StartTime, StringFormat=' • Tid: {0}'}" Style="{StaticResource Caption}"/>
+                                        </StackLayout>
+
+                                        <Button Grid.Row="0" Grid.RowSpan="3" Grid.Column="1" 
+                                                Text="Slet" 
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteExamCommand}"
+                                                CommandParameter="{Binding .}"
+                                                BackgroundColor="{StaticResource Black}"
+                                                TextColor="{StaticResource White}"
+                                                WidthRequest="70"
+                                                HeightRequest="36"
+                                                FontSize="14"
+                                                VerticalOptions="Start"/>
+                                    </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </StackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</views:BaseContentPage> 

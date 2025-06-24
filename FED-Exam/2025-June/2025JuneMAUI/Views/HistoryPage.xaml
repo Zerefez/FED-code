@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<views:BaseContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                       xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                       xmlns:views="clr-namespace:_2025JuneMAUI.Views"
+                       x:Class="_2025JuneMAUI.Views.HistoryPage"
+                       x:TypeArguments="viewmodels:HistoryViewModel"
+                       xmlns:viewmodels="clr-namespace:_2025JuneMAUI.ViewModels"
+                       Title="{Binding Title}"
+                       BackgroundColor="{StaticResource White}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="32" Spacing="32">
+            
+            <!-- Header -->
+            <Label 
+                Text="Eksamen Historik" 
+                Style="{StaticResource Headline}"
+                HorizontalOptions="Center" />
+
+            <!-- Exam Selection Card -->
+            <Border Style="{StaticResource CardStyle}" Padding="24">
+                <StackLayout Spacing="16">
+                    <Label Text="Vælg Eksamen" Style="{StaticResource Title}"/>
+                    
+                    <Border Stroke="{StaticResource Gray300}" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="{StaticResource White}">
+                        <Picker ItemsSource="{Binding Exams}" 
+                                SelectedItem="{Binding SelectedExam}"
+                                ItemDisplayBinding="{Binding CourseName}"
+                                Title="Vælg en eksamen at se historik for"
+                                BackgroundColor="Transparent"
+                                Margin="12,8"/>
+                    </Border>
+
+                    <Button Text="Opdater Data" 
+                            BackgroundColor="Black"
+                            TextColor="White"
+                            Command="{Binding RefreshDataCommand}"
+                            Style="{StaticResource SecondaryButton}"
+                            HorizontalOptions="Center"
+                            WidthRequest="160"/>
+                </StackLayout>
+            </Border>
+
+            <!-- Exam Summary -->
+            <Border Style="{StaticResource CardStyle}" Padding="24" IsVisible="{Binding ShowStudentList}">
+                <StackLayout Spacing="16">
+                    <Label Text="Eksamen Information" 
+                           Style="{StaticResource Title}"
+                           HorizontalOptions="Center"/>
+                    
+                    <Label Text="{Binding ExamSummary}" 
+                           Style="{StaticResource Body}"
+                           LineBreakMode="WordWrap"/>
+                </StackLayout>
+            </Border>
+
+            <!-- Grade Statistics -->
+            <Border Style="{StaticResource CardStyle}" Padding="24" IsVisible="{Binding ShowStudentList}">
+                <StackLayout Spacing="16">
+                    <Label Text="Karakter Statistik" 
+                           Style="{StaticResource Title}"
+                           HorizontalOptions="Center"/>
+                    
+                    <Label Text="{Binding AverageGrade}" 
+                           Style="{StaticResource Body}"
+                           LineBreakMode="WordWrap"/>
+                </StackLayout>
+            </Border>
+
+            <!-- No Data Message -->
+            <Border Style="{StaticResource CardStyle}" Padding="24" IsVisible="{Binding ShowNoDataMessage}">
+                <StackLayout Spacing="16">
+                    <Label Text="Information" 
+                           Style="{StaticResource Title}"
+                           HorizontalOptions="Center"/>
+                    
+                    <Label Text="{Binding NoDataMessage}" 
+                           Style="{StaticResource Body}"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center"/>
+                </StackLayout>
+            </Border>
+
+            <!-- Student List -->
+            <StackLayout IsVisible="{Binding ShowStudentList}" Spacing="16">
+                
+                <Label Text="Studerende Liste" Style="{StaticResource Title}"/>
+
+                <CollectionView ItemsSource="{Binding Students}" BackgroundColor="Transparent">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource CardStyle}" Margin="0,8" Padding="20">
+                                <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto" RowSpacing="8">
+
+                                    <!-- Student Info -->
+                                    <StackLayout Grid.Row="0" Grid.Column="0">
+                                        <Label FontAttributes="Bold" Style="{StaticResource Subtitle}" Margin="0">
+                                            <Label.Text>
+                                                <MultiBinding StringFormat="{}{0} {1}">
+                                                    <Binding Path="FirstName"/>
+                                                    <Binding Path="LastName"/>
+                                                </MultiBinding>
+                                            </Label.Text>
+                                        </Label>
+                                        <Label Text="{Binding StudentNo}" Style="{StaticResource Caption}"/>
+                                    </StackLayout>
+
+                                    <!-- Grade Display -->
+                                    <Border Grid.Row="0" Grid.Column="1"
+                                            Stroke="{StaticResource Gray300}"
+                                            StrokeThickness="1"
+                                            StrokeShape="RoundRectangle 12"
+                                            BackgroundColor="{StaticResource Black}"
+                                            Padding="12,8">
+                                        <Label Text="{Binding Grade}"
+                                               FontAttributes="Bold" 
+                                               FontSize="16"
+                                               TextColor="{StaticResource White}"
+                                               HorizontalOptions="Center">
+                                            <Label.Triggers>
+                                                <!-- Show waiting text for empty/null grades -->
+                                                <DataTrigger TargetType="Label" Binding="{Binding Grade}" Value="">
+                                                    <Setter Property="Text" Value="Venter" />
+                                                    <Setter Property="TextColor" Value="{StaticResource Gray600}" />
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Label" Binding="{Binding Grade}" Value="{x:Null}">
+                                                    <Setter Property="Text" Value="Venter" />
+                                                    <Setter Property="TextColor" Value="{StaticResource Gray600}" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
+                                        <Border.Triggers>
+                                            <!-- Change border color for pending students -->
+                                            <DataTrigger TargetType="Border" Binding="{Binding Grade}" Value="">
+                                                <Setter Property="BackgroundColor" Value="{StaticResource Gray200}" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Border" Binding="{Binding Grade}" Value="{x:Null}">
+                                                <Setter Property="BackgroundColor" Value="{StaticResource Gray200}" />
+                                            </DataTrigger>
+                                        </Border.Triggers>
+                                    </Border>
+
+                                    <!-- Additional Info -->
+                                    <StackLayout Grid.Row="1" Grid.ColumnSpan="2">
+                                        <Label Style="{StaticResource Caption}">
+                                            <Label.Text>
+                                                <MultiBinding StringFormat="Spørgsmål: {0} • Eksaminationsorden: {1}">
+                                                    <Binding Path="QuestionNo"/>
+                                                    <Binding Path="ExaminationOrder"/>
+                                                </MultiBinding>
+                                            </Label.Text>
+                                        </Label>
+                                    </StackLayout>
+
+                                    <!-- Notes -->
+                                    <Label Grid.Row="2" Grid.ColumnSpan="2" 
+                                           Text="{Binding Notes, StringFormat='Noter: {0}'}" 
+                                           Style="{StaticResource Caption}"
+                                           LineBreakMode="WordWrap"
+                                           MaxLines="3">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding Notes}" Value="">
+                                                <Setter Property="IsVisible" Value="False" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Label" Binding="{Binding Notes}" Value="{x:Null}">
+                                                <Setter Property="IsVisible" Value="False" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </StackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</views:BaseContentPage> 
